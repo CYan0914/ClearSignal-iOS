@@ -1,0 +1,46 @@
+name: ClearSignal
+options:
+  bundleIdPrefix: com.cyan0914
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "26.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  ClearSignal:
+    type: application
+    platform: iOS
+    sources:
+      - path: .
+        excludes:
+          - project.yml
+          - .github
+          - 上架材料
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cyan0914.clearsignal
+        INFOPLIST_FILE: Resources/Info.plist
+        PRODUCT_NAME: ClearSignal
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+    dependencies:
+      - package: RevenueCat
+        product: RevenueCat
+    preBuildScripts:
+      - name: "SwiftLint"
+        script: |
+          if which swiftlint > /dev/null; then
+            swiftlint
+          fi
+        basedOnDependencyAnalysis: false
+        inputFiles: []
+
+packages:
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios
+    version: 5.81.1

@@ -1,0 +1,92 @@
+name: Build ClearSignal
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_ipa:
+        description: 'Export unsigned IPA for App Store upload'
+        type: boolean
+        default: true
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build ClearSignal
+    runs-on: macos-sequoia
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        run: sudo xcode-select -s /Applications/Xcode-26.app/Contents/Developer
+
+      - name: Verify Xcode version
+        run: xcodebuild -version
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          cd ${{ github.workspace }}
+          xcodegen generate
+
+      - name: Resolve Package Dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project ClearSignal.xcodeproj \
+            -scheme ClearSignal \
+            -clonedSourcePackagesDirPath .
+
+      - name: Build (Debug)
+        run: |
+          xcodebuild build \
+            -project ClearSignal.xcodeproj \
+            -scheme ClearSignal \
+            -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Archive (Release)
+        if: ${{ github.event.inputs.create_ipa == 'true' }}
+        run: |
+          xcodebuild archive \
+            -project ClearSignal.xcodeproj \
+            -scheme ClearSignal \
+            -configuration Release \
+            -archivePath ClearSignal.xcarchive \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export IPA
+        if: ${{ github.event.inputs.create_ipa == 'true' }}
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath ClearSignal.xcarchive \
+            -exportPath export \
+            -exportOptionsPlist ExportOptions.plist
+
+      - name: Upload IPA artifact
+        if: ${{ github.event.inputs.create_ipa == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClearSignal.ipa
+          path: export/ClearSignal.ipa
+
+      - name: Upload to App Store Connect
+        if: ${{ github.event.inputs.create_ipa == 'true' }}
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
+        run: |
+          echo "$APPSTORE_API_KEY" > api_key.p8
+          xcrun altool --upload-app \
+            -f export/ClearSignal.ipa \
+            -t ios \
+            --apiKey "$APPSTORE_KEY_ID" \
+            --apiIssuer "$APPSTORE_ISSUER_ID"
