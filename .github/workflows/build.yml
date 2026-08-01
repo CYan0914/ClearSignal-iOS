@@ -1,4 +1,4 @@
-name: Build ClearSignal
+name: Build Signalveil
 
 on:
   workflow_dispatch:
@@ -54,8 +54,8 @@ jobs:
       - name: Clean stale project (avoid Xcode format mismatch)
         run: |
           echo "Before cleanup:"
-          ls -la ClearSignal.xcodeproj/ 2>/dev/null || echo "  (no xcodeproj)"
-          rm -rf ClearSignal.xcodeproj
+          ls -la Signalveil.xcodeproj/ 2>/dev/null || echo "  (no xcodeproj)"
+          rm -rf Signalveil.xcodeproj
           echo "After cleanup: done"
 
       - name: Generate Xcode Project
@@ -78,8 +78,8 @@ jobs:
       - name: Build for Simulator
         run: |
           xcodebuild build \
-            -project ClearSignal.xcodeproj \
-            -scheme ClearSignal \
+            -project Signalveil.xcodeproj \
+            -scheme Signalveil \
             -sdk iphonesimulator \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -132,8 +132,8 @@ jobs:
       - name: Clean stale project (avoid Xcode format mismatch)
         run: |
           echo "Before cleanup:"
-          ls -la ClearSignal.xcodeproj/ 2>/dev/null || echo "  (no xcodeproj)"
-          rm -rf ClearSignal.xcodeproj
+          ls -la Signalveil.xcodeproj/ 2>/dev/null || echo "  (no xcodeproj)"
+          rm -rf Signalveil.xcodeproj
           echo "After cleanup: done"
 
       - name: Generate Xcode Project
@@ -166,12 +166,12 @@ jobs:
         run: |
           xcodebuild \
             archive \
-            -project ClearSignal.xcodeproj \
-            -scheme ClearSignal \
+            -project Signalveil.xcodeproj \
+            -scheme Signalveil \
             -configuration Release \
             -destination generic/platform=iOS \
             -sdk iphoneos \
-            -archivePath ClearSignal.xcarchive \
+            -archivePath Signalveil.xcarchive \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -191,16 +191,16 @@ jobs:
             -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
             -allowProvisioningUpdates \
             -exportArchive \
-            -archivePath ClearSignal.xcarchive \
-            -exportPath ./ClearSignal.ipa \
+            -archivePath Signalveil.xcarchive \
+            -exportPath ./Signalveil.ipa \
             -exportOptionsPlist ExportOptions.plist
         working-directory: .
 
       - name: Upload IPA (artifact backup)
         uses: actions/upload-artifact@v4
         with:
-          name: ClearSignal-IPA
-          path: ClearSignal.ipa/ClearSignal.ipa
+          name: Signalveil-IPA
+          path: Signalveil.ipa/Signalveil.ipa
           retention-days: 30
 
       - name: Upload to App Store Connect (TestFlight)
@@ -216,7 +216,7 @@ jobs:
           mkdir -p ~/private_keys
           echo "$APPSTORE_API_KEY" > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
           xcrun altool --upload-app \
-            -f "ClearSignal.ipa/ClearSignal.ipa" \
+            -f "Signalveil.ipa/Signalveil.ipa" \
             --apiKey "$APPSTORE_KEY_ID" \
             --apiIssuer "$APPSTORE_ISSUER_ID" \
             --type ios \

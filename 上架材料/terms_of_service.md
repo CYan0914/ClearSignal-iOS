@@ -1,14 +1,14 @@
-# ClearSignal Terms of Service
+# Signalveil Terms of Service
 
 *Last updated: 2026-08-01*
 
 ## 1. Acceptance
 
-By downloading or using ClearSignal ("the App"), you agree to these terms. If you don't agree, don't use the App.
+By downloading or using Signalveil ("the App"), you agree to these terms. If you don't agree, don't use the App.
 
 ## 2. Medical Disclaimer ⚠️
 
-**ClearSignal is NOT a medical device. It does not provide medical diagnosis, treatment, or advice.**
+**Signalveil is NOT a medical device. It does not provide medical diagnosis, treatment, or advice.**
 
 The App translates health data from wearable devices into simplified trend summaries and natural-language briefs. All content is for informational and wellness purposes only.
 
@@ -23,11 +23,11 @@ Health data from wearable devices (Apple Watch, Oura, Fitbit, etc.) has accuracy
 - Heart Rate Variability: 20-40% day-to-day measurement variation
 - Calorie expenditure: 20-30% error margin
 
-ClearSignal explicitly communicates these limitations within the App. Our "noise" classification is designed to help you understand when data is unreliable — not to challenge medical-grade measurements.
+Signalveil explicitly communicates these limitations within the App. Our "noise" classification is designed to help you understand when data is unreliable — not to challenge medical-grade measurements.
 
 ## 4. Subscriptions
 
-ClearSignal offers a free tier and a Premium subscription:
+Signalveil offers a free tier and a Premium subscription:
 - **Free**: Basic trends, 1 weekly brief
 - **Premium** ($4.99/month or $39.99/year): Daily AI briefs, conversational Q&A, ignore lists, goal filtering
 
@@ -35,7 +35,7 @@ Subscriptions auto-renew unless cancelled at least 24 hours before the end of th
 
 ## 5. Intellectual Property
 
-ClearSignal and all original content, features, and functionality are owned by the developer and protected by copyright and other intellectual property laws.
+Signalveil and all original content, features, and functionality are owned by the developer and protected by copyright and other intellectual property laws.
 
 ## 6. Limitation of Liability
 

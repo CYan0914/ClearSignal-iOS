@@ -140,7 +140,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Advanced")
                 } footer: {
-                    Text("This will clear all local preferences and cached briefs. HealthKit data is never deleted by ClearSignal — it stays in Apple Health.")
+                    Text("This will clear all local preferences and cached briefs. HealthKit data is never deleted by Signalveil — it stays in Apple Health.")
                 }
             }
             .navigationTitle("Settings")
@@ -193,7 +193,7 @@ struct SettingsView: View {
     private var privacyInfo: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("ClearSignal Privacy Philosophy")
+                Text("Signalveil Privacy Philosophy")
                     .font(.title3)
                     .fontWeight(.bold)
 
@@ -204,7 +204,7 @@ struct SettingsView: View {
                     privacyPoint(
                         icon: "iphone",
                         title: "Data stays on your device",
-                        detail: "ClearSignal reads HealthKit data locally. We never upload your raw health data to any server."
+                        detail: "Signalveil reads HealthKit data locally. We never upload your raw health data to any server."
                     )
                     privacyPoint(
                         icon: "eye.slash",

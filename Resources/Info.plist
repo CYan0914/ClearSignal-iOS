@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>ClearSignal</string>
+	<string>Signalveil</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIconName</key>
@@ -27,9 +27,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>ClearSignal reads your Apple Watch and health data to translate it into a simple daily brief. Only the 5-8 core metrics are accessed — your data stays on your device.</string>
+	<string>Signalveil reads your Apple Watch and health data to translate it into a simple daily brief. Only the 5-8 core metrics are accessed — your data stays on your device.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>ClearSignal uses your daily feeling check-in to compare how you feel vs what your wearable scores say.</string>
+	<string>Signalveil uses your daily feeling check-in to compare how you feel vs what your wearable scores say.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

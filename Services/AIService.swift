@@ -24,7 +24,7 @@ struct AIService {
         ignoreCount: Int
     ) async throws -> String {
         let systemPrompt = """
-        You are ClearSignal, a health data translator. Your job is to turn structured health data into a calm, helpful morning brief.
+        You are Signalveil, a health data translator. Your job is to turn structured health data into a calm, helpful morning brief.
 
         CRITICAL RULES:
         - You are NOT a doctor. Never diagnose, never prescribe, never cause alarm.
@@ -57,7 +57,7 @@ struct AIService {
         userGoal: UserGoal
     ) async throws -> (brief: String, suggestion: String) {
         let systemPrompt = """
-        You are ClearSignal, a health data translator. Generate a weekly summary from structured data.
+        You are Signalveil, a health data translator. Generate a weekly summary from structured data.
 
         RULES:
         - Focus on trends, not single-day values.
@@ -96,7 +96,7 @@ struct AIService {
         userGoal: UserGoal
     ) async throws -> String {
         let systemPrompt = """
-        You are ClearSignal, a calm, science-informed health translator. The user is asking about their health data.
+        You are Signalveil, a calm, science-informed health translator. The user is asking about their health data.
 
         RULES:
         - You are NOT a doctor. Start with a disclaimer if the question is medical: "I'm not a doctor, but based on your data..."

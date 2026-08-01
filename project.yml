@@ -1,4 +1,4 @@
-name: ClearSignal
+name: Signalveil
 options:
   bundleIdPrefix: com.cyan0914
   deploymentTarget:
@@ -20,7 +20,7 @@ settings:
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "1"
     TARGETED_DEVICE_FAMILY: "1,2"
-    INFOPLIST_KEY_CFBundleDisplayName: "ClearSignal"
+    INFOPLIST_KEY_CFBundleDisplayName: "Signalveil"
     INFOPLIST_KEY_UILaunchScreenGeneration: "Default"
     INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait"
     INFOPLIST_KEY_LSRequiresIPhoneOS: YES
@@ -36,7 +36,7 @@ settings:
       SWIFT_OPTIMIZATION_LEVEL: "-O"
 
 targets:
-  ClearSignal:
+  Signalveil:
     type: application
     platform: iOS
     sources:
@@ -51,7 +51,7 @@ targets:
           - "ExportOptions.plist"
     settings:
       base:
-        PRODUCT_NAME: ClearSignal
+        PRODUCT_NAME: Signalveil
         PRODUCT_BUNDLE_IDENTIFIER: com.cyan0914.clearsignal
         INFOPLIST_FILE: Resources/Info.plist
         GENERATE_INFOPLIST_FILE: NO

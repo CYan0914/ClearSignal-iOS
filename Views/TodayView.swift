@@ -32,7 +32,7 @@ struct TodayView: View {
                 }
                 .padding()
             }
-            .navigationTitle("ClearSignal")
+            .navigationTitle("Signalveil")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if isLoading {

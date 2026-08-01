@@ -85,7 +85,7 @@ struct OnboardingView: View {
         case .welcome: return "Get Started"
         case .goalSelection: return "Continue"
         case .healthKit: return "Connect Apple Health"
-        case .done: return "Start Using ClearSignal"
+        case .done: return "Start Using Signalveil"
         }
     }
 
@@ -123,7 +123,7 @@ struct OnboardingView: View {
                 .foregroundColor(.blue)
                 .padding(.bottom, 8)
 
-            Text("ClearSignal")
+            Text("Signalveil")
                 .font(.largeTitle)
                 .fontWeight(.bold)
 

@@ -51,7 +51,7 @@ struct ChatView: View {
                 // Input bar
                 inputBar
             }
-            .navigationTitle("Ask ClearSignal")
+            .navigationTitle("Ask Signalveil")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showPaywall) {
                 PaywallView()

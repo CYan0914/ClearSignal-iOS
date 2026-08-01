@@ -20,7 +20,7 @@ struct PaywallView: View {
                         .font(.system(size: 48))
                         .foregroundColor(.orange)
 
-                    Text("ClearSignal Premium")
+                    Text("Signalveil Premium")
                         .font(.title2)
                         .fontWeight(.bold)
 
