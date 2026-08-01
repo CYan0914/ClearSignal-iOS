@@ -3,8 +3,8 @@ import Foundation
 /// The result of resolving a conflict between device scores and subjective feeling.
 /// ⭐ This is the #1 differentiator — no competitor does this.
 struct ConflictVerdict: Identifiable, Codable {
-    let id: UUID
-    let resolvedAt: Date
+    let id: UUID = UUID()
+    let resolvedAt: Date = Date()
 
     /// The user's reported feeling
     let userFeeling: Feeling
