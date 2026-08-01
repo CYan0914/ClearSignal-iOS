@@ -4,89 +4,208 @@ on:
   workflow_dispatch:
     inputs:
       create_ipa:
-        description: 'Export unsigned IPA for App Store upload'
+        description: 'Build production IPA (requires certs)'
+        required: false
+        default: false
         type: boolean
-        default: true
   push:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # ─── Build & Test (skipped when create_ipa=true) ────────
   build:
-    name: Build ClearSignal
-    runs-on: macos-sequoia
-    timeout-minutes: 45
+    name: Build for iOS Simulator
+    if: github.event_name == 'push' || github.event.inputs.create_ipa != 'true'
+    runs-on: macos-latest  # Need Xcode 26+ for App Store upload
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode 26
-        run: sudo xcode-select -s /Applications/Xcode-26.app/Contents/Developer
-
-      - name: Verify Xcode version
-        run: xcodebuild -version
+      - name: Select Xcode (need 26+ for App Store)
+        run: |
+          echo "=== Available Xcode ==="
+          ls -d /Applications/Xcode*.app 2>/dev/null || echo "(none found)"
+          # Find ANY Xcode with iOS SDK 26+
+          for xc in /Applications/Xcode*.app; do
+            if sudo xcode-select -s "$xc/Contents/Developer" 2>/dev/null; then
+              sdk=$(xcrun --sdk iphoneos --show-sdk-version 2>/dev/null || echo "unknown")
+              echo "  $xc → iOS SDK $sdk"
+              if [[ "$sdk" == 2[6-9].* ]] || [[ "$sdk" == [3-9]* ]]; then
+                echo "✅ Selected: $xc (iOS SDK $sdk)"
+                xcodebuild -version
+                exit 0
+              fi
+            fi
+          done
+          # Fallback: use the one with highest SDK
+          echo "⚠️ No Xcode with SDK 26+ found — using fallback"
+          xcodebuild -version
 
       - name: Install xcodegen
-        run: brew install xcodegen
-
-      - name: Generate Xcode project
         run: |
-          cd ${{ github.workspace }}
-          xcodegen generate
+          brew install xcodegen 2>/dev/null || brew upgrade xcodegen 2>/dev/null
+          xcodegen --version
 
-      - name: Resolve Package Dependencies
+      - name: Clean stale project (avoid Xcode format mismatch)
         run: |
-          xcodebuild -resolvePackageDependencies \
-            -project ClearSignal.xcodeproj \
-            -scheme ClearSignal \
-            -clonedSourcePackagesDirPath .
+          echo "Before cleanup:"
+          ls -la ClearSignal.xcodeproj/ 2>/dev/null || echo "  (no xcodeproj)"
+          rm -rf ClearSignal.xcodeproj
+          echo "After cleanup: done"
 
-      - name: Build (Debug)
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build for Simulator
         run: |
           xcodebuild build \
             -project ClearSignal.xcodeproj \
             -scheme ClearSignal \
-            -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-            -skipPackagePluginValidation \
-            CODE_SIGNING_ALLOWED=NO
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty && exit ${PIPESTATUS[0]}
+        working-directory: .
 
-      - name: Archive (Release)
-        if: ${{ github.event.inputs.create_ipa == 'true' }}
+      - name: Upload Build Logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: ~/Library/Logs/DiagnosticReports/
+          retention-days: 7
+
+  # ─── Archive & IPA (manual trigger) ────────────────────
+  archive:
+    name: Archive for App Store
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_ipa == 'true'
+    runs-on: macos-latest  # Need Xcode 26+ for App Store upload
+    needs: []
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode (need 26+ for App Store)
         run: |
-          xcodebuild archive \
+          echo "=== Available Xcode ==="
+          ls -d /Applications/Xcode*.app 2>/dev/null || echo "(none found)"
+          for xc in /Applications/Xcode*.app; do
+            if sudo xcode-select -s "$xc/Contents/Developer" 2>/dev/null; then
+              sdk=$(xcrun --sdk iphoneos --show-sdk-version 2>/dev/null || echo "unknown")
+              echo "  $xc → iOS SDK $sdk"
+              if [[ "$sdk" == 2[6-9].* ]] || [[ "$sdk" == [3-9]* ]]; then
+                echo "✅ Selected: $xc (iOS SDK $sdk)"
+                xcodebuild -version
+                exit 0
+              fi
+            fi
+          done
+          echo "⚠️ No Xcode with SDK 26+ found — using fallback"
+          xcodebuild -version
+
+      - name: Install xcodegen
+        run: |
+          brew install xcodegen 2>/dev/null || brew upgrade xcodegen 2>/dev/null
+          xcodegen --version
+
+      - name: Clean stale project (avoid Xcode format mismatch)
+        run: |
+          echo "Before cleanup:"
+          ls -la ClearSignal.xcodeproj/ 2>/dev/null || echo "  (no xcodeproj)"
+          rm -rf ClearSignal.xcodeproj
+          echo "After cleanup: done"
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Ensure iOS SDK is ready (Xcode first launch)
+        run: |
+          # 1) Accept license & run first launch
+          sudo xcodebuild -license accept 2>&1 || true
+          sudo xcodebuild -runFirstLaunch 2>&1 || true
+
+          # 2) Install iOS platform with retry (removes || true so we see failures)
+          echo "--- Downloading iOS platform ---"
+          for i in 1 2 3; do
+            echo "Attempt $i..."
+            sudo xcodebuild -downloadPlatform iOS -quiet 2>&1 && break
+            echo "Attempt $i failed, sleeping 10s..."
+            sleep 10
+          done
+
+          # 3) Verify SDK
+          echo "=== SDK verification ==="
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version || echo "⚠️ iphoneos SDK not found!"
+          xcrun --sdk iphoneos --show-sdk-path || true
+          ls -la /Applications/Xcode*.app/Contents/Developer/Platforms/iPhoneOS.platform/DeviceSupport/ 2>/dev/null | head -5 || echo "No DeviceSupport found"
+          echo "=== Done ==="
+
+      - name: Archive (unsigned — sign at export)
+        run: |
+          xcodebuild \
+            archive \
             -project ClearSignal.xcodeproj \
             -scheme ClearSignal \
             -configuration Release \
+            -destination generic/platform=iOS \
+            -sdk iphoneos \
             -archivePath ClearSignal.xcarchive \
-            -destination 'generic/platform=iOS' \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
+        working-directory: .
 
       - name: Export IPA
-        if: ${{ github.event.inputs.create_ipa == 'true' }}
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath ClearSignal.xcarchive \
-            -exportPath export \
-            -exportOptionsPlist ExportOptions.plist
-
-      - name: Upload IPA artifact
-        if: ${{ github.event.inputs.create_ipa == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ClearSignal.ipa
-          path: export/ClearSignal.ipa
-
-      - name: Upload to App Store Connect
-        if: ${{ github.event.inputs.create_ipa == 'true' }}
         env:
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
         run: |
-          echo "$APPSTORE_API_KEY" > api_key.p8
+          echo "$APPSTORE_API_KEY" > /tmp/AuthKey_${APPSTORE_KEY_ID}.p8
+          xcodebuild \
+            -authenticationKeyPath /tmp/AuthKey_${APPSTORE_KEY_ID}.p8 \
+            -authenticationKeyID "$APPSTORE_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
+            -allowProvisioningUpdates \
+            -exportArchive \
+            -archivePath ClearSignal.xcarchive \
+            -exportPath ./ClearSignal.ipa \
+            -exportOptionsPlist ExportOptions.plist
+        working-directory: .
+
+      - name: Upload IPA (artifact backup)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClearSignal-IPA
+          path: ClearSignal.ipa/ClearSignal.ipa
+          retention-days: 30
+
+      - name: Upload to App Store Connect (TestFlight)
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
+        run: |
+          if [ -z "$APPSTORE_KEY_ID" ]; then
+            echo "APPSTORE_KEY_ID not set — skipping TestFlight upload. IPA available as artifact."
+            exit 0
+          fi
+          mkdir -p ~/private_keys
+          echo "$APPSTORE_API_KEY" > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
           xcrun altool --upload-app \
-            -f export/ClearSignal.ipa \
-            -t ios \
+            -f "ClearSignal.ipa/ClearSignal.ipa" \
             --apiKey "$APPSTORE_KEY_ID" \
-            --apiIssuer "$APPSTORE_ISSUER_ID"
+            --apiIssuer "$APPSTORE_ISSUER_ID" \
+            --type ios \
+            --verbose 2>&1
+        working-directory: .
