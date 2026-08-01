@@ -27,11 +27,19 @@ struct WeeklyBriefView: View {
                     // --- Feeling summary ---
                     feelingSummaryCard(brief)
                 } else {
-                    ContentUnavailableView(
-                        "No Weekly Summary Yet",
-                        systemImage: "calendar.badge.clock",
-                        description: Text("Weekly summaries are generated every Sunday. Check back then for your full week-over-week analysis.")
-                    )
+                    VStack(spacing: 12) {
+                        Image(systemName: "calendar.badge.clock")
+                            .font(.system(size: 48))
+                            .foregroundColor(.secondary)
+                        Text("No Weekly Summary Yet")
+                            .font(.headline)
+                        Text("Weekly summaries are generated every Sunday. Check back then for your full week-over-week analysis.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 60)
                 }
             }
             .padding()
