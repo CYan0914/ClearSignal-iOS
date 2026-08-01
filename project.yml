@@ -47,6 +47,8 @@ targets:
           - ".github/"
           - "**/.gitkeep"
           - "README.md"
+          - "上架材料/"
+          - "ExportOptions.plist"
     settings:
       base:
         PRODUCT_NAME: ClearSignal

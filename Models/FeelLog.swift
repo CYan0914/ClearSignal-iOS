@@ -24,7 +24,7 @@ struct FeelLog: Identifiable, Codable {
 }
 
 /// Summary stats from feeling logs, used by the conflict arbitrator.
-struct FeelingSummary {
+struct FeelingSummary: Codable {
     /// Count of good/okay/bad days in the window
     let goodDays: Int
     let okayDays: Int
