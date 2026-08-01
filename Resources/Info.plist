@@ -26,6 +26,8 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Signalveil reads your Apple Watch and health data to translate it into a simple daily brief. Only the 5-8 core metrics are accessed — your data stays on your device.</string>
 	<key>NSHealthUpdateUsageDescription</key>

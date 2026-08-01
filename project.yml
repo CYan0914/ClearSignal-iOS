@@ -53,6 +53,7 @@ targets:
       base:
         PRODUCT_NAME: Signalveil
         PRODUCT_BUNDLE_IDENTIFIER: com.cyan0914.clearsignal
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_FILE: Resources/Info.plist
         GENERATE_INFOPLIST_FILE: NO
       configs:
