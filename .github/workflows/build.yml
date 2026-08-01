@@ -61,13 +61,26 @@ jobs:
       - name: Generate Xcode Project
         run: xcodegen generate
 
+      - name: Ensure iOS SDK is ready (Xcode first launch)
+        run: |
+          sudo xcodebuild -license accept 2>&1 || true
+          sudo xcodebuild -runFirstLaunch 2>&1 || true
+          echo "--- Downloading iOS platform ---"
+          for i in 1 2 3; do
+            echo "Attempt $i..."
+            sudo xcodebuild -downloadPlatform iOS -quiet 2>&1 && break
+            echo "Attempt $i failed, sleeping 10s..."
+            sleep 10
+          done
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version || echo "⚠️ iphoneos SDK not found!"
+
       - name: Build for Simulator
         run: |
           xcodebuild build \
             -project ClearSignal.xcodeproj \
             -scheme ClearSignal \
             -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \

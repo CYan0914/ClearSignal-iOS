@@ -2,14 +2,38 @@ name: ClearSignal
 options:
   bundleIdPrefix: com.cyan0914
   deploymentTarget:
-    iOS: "18.0"
-  xcodeVersion: "26.0"
+    iOS: "16.0"
+  minimumXcodeGenVersion: 2.40
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+packages:
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios
+    from: 5.14.0
 
 settings:
   base:
-    SWIFT_VERSION: "6.0"
-    DEVELOPMENT_TEAM: ""
-    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "5.9"
+    ALWAYS_SEARCH_USER_PATHS: NO
+    DEVELOPMENT_TEAM: H4VQ9X6KYK
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    INFOPLIST_KEY_CFBundleDisplayName: "ClearSignal"
+    INFOPLIST_KEY_UILaunchScreenGeneration: "Default"
+    INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait"
+    INFOPLIST_KEY_LSRequiresIPhoneOS: YES
+    INFOPLIST_KEY_UIApplicationSceneManifest: >
+      {"UIApplicationSupportsMultipleScenes": false}
+    INFOPLIST_KEY_UIRequiredDeviceCapabilities: ["arm64"]
+    INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: false
+  configs:
+    Debug:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+    Release:
+      SWIFT_COMPILATION_MODE: wholemodule
+      SWIFT_OPTIMIZATION_LEVEL: "-O"
 
 targets:
   ClearSignal:
@@ -18,29 +42,18 @@ targets:
     sources:
       - path: .
         excludes:
-          - project.yml
-          - .github
-          - 上架材料
+          - "project.yml"
+          - ".git/"
+          - ".github/"
+          - "**/.gitkeep"
+          - "README.md"
     settings:
       base:
+        PRODUCT_NAME: ClearSignal
         PRODUCT_BUNDLE_IDENTIFIER: com.cyan0914.clearsignal
         INFOPLIST_FILE: Resources/Info.plist
-        PRODUCT_NAME: ClearSignal
-        MARKETING_VERSION: "1.0"
-        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+      configs:
+        Release: {}
     dependencies:
       - package: RevenueCat
-        product: RevenueCat
-    preBuildScripts:
-      - name: "SwiftLint"
-        script: |
-          if which swiftlint > /dev/null; then
-            swiftlint
-          fi
-        basedOnDependencyAnalysis: false
-        inputFiles: []
-
-packages:
-  RevenueCat:
-    url: https://github.com/RevenueCat/purchases-ios
-    version: 5.81.1
