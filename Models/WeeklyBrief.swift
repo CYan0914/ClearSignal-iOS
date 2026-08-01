@@ -59,13 +59,18 @@ struct MetricWeekComparison: Identifiable, Codable {
         self.metric = metric
         self.thisWeekAverage = thisWeekAverage
         self.lastWeekAverage = lastWeekAverage
-        self.percentChange = lastWeekAverage != 0
+        let computedPercentChange = lastWeekAverage != 0
             ? ((thisWeekAverage - lastWeekAverage) / lastWeekAverage) * 100
             : 0
-        self.direction = {
-            if abs(percentChange) < 3 { return .stable }
-            return percentChange > 0 ? .rising : .falling
-        }()
+        self.percentChange = computedPercentChange
+
+        let computedDirection: TrendDirection
+        if abs(computedPercentChange) < 3 {
+            computedDirection = .stable
+        } else {
+            computedDirection = computedPercentChange > 0 ? .rising : .falling
+        }
+        self.direction = computedDirection
     }
 
     var summary: String {
