@@ -48,7 +48,7 @@ You can:
 
 For privacy-related questions, contact:
 - Email: cyan0914@gmail.com
-- Support: https://cyan0914.github.io/clearsignal-privacy/support.html
+- Support: https://cyan0914.github.io/signalveil-privacy/support.html
 
 ## 8. Changes
 
