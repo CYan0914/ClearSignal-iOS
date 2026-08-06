@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct SignalveilApp: App {
+struct SignalVeilApp: App {
     @StateObject private var subscriptionManager = SubscriptionManager()
 
     var body: some Scene {

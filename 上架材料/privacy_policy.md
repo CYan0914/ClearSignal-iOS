@@ -1,10 +1,10 @@
-# Signalveil 隐私政策 (Privacy Policy)
+# SignalVeil 隐私政策 (Privacy Policy)
 
 *Last updated: 2026-08-01*
 
 ## 1. Data We Access
 
-Signalveil reads the following data types from Apple HealthKit, with your explicit permission:
+SignalVeil reads the following data types from Apple HealthKit, with your explicit permission:
 - Sleep Duration
 - Resting Heart Rate
 - Heart Rate Variability (HRV)
@@ -18,7 +18,7 @@ We do NOT access: workouts, nutrition/dietary data, cycle tracking, blood glucos
 
 ## 2. Data Storage
 
-**All health data stays on your device.** Signalveil does not upload, transmit, or store your raw HealthKit data on any external server. Health data is accessed in read-only mode via Apple's HealthKit framework and is never copied out of HealthKit.
+**All health data stays on your device.** SignalVeil does not upload, transmit, or store your raw HealthKit data on any external server. Health data is accessed in read-only mode via Apple's HealthKit framework and is never copied out of HealthKit.
 
 User preferences (selected goal, ignore list, daily feeling logs) are stored locally using Apple's UserDefaults and may be synced via iCloud if you have iCloud enabled.
 
@@ -28,7 +28,7 @@ When you use the AI chat or daily brief features (Premium), only pre-processed t
 
 ## 4. Third-Party Services
 
-Signalveil uses the following third-party services:
+SignalVeil uses the following third-party services:
 - **RevenueCat** (revenuecat.com): For subscription management. RevenueCat receives only your anonymous App Store receipt data — no health data.
 - **Alibaba Cloud DashScope** (dashscope.aliyuncs.com): For AI-powered brief generation and chat (Premium users). As described above, only aggregated trend summaries are sent.
 
@@ -39,7 +39,7 @@ We do not sell, trade, or share your data with any third party for advertising, 
 ## 6. Your Control
 
 You can:
-- Revoke HealthKit access at any time via iOS Settings → Privacy → Health → Signalveil
+- Revoke HealthKit access at any time via iOS Settings → Privacy → Health → SignalVeil
 - Delete all local data by deleting the app
 - Opt out of notifications in Settings
 - Your HealthKit data was never copied — it stays in Apple Health where it belongs

@@ -82,7 +82,7 @@ struct SettingsView: View {
                     Text("Subscription")
                 } footer: {
                     if !subscriptionManager.isPro {
-                        Text("Premium unlocks: daily AI briefs, conversational Q&A, ignore lists, and goal filtering.")
+                        Text("Premium unlocks: daily AI briefs, conversational Q&A, ignore lists, weekly AI deep reports, and 30-day history.")
                     }
                 }
 
@@ -140,7 +140,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Advanced")
                 } footer: {
-                    Text("This will clear all local preferences and cached briefs. HealthKit data is never deleted by Signalveil — it stays in Apple Health.")
+                    Text("This will clear all local preferences and cached briefs. HealthKit data is never deleted by SignalVeil — it stays in Apple Health.")
                 }
             }
             .navigationTitle("Settings")
@@ -193,7 +193,7 @@ struct SettingsView: View {
     private var privacyInfo: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Signalveil Privacy Philosophy")
+                Text("SignalVeil Privacy Philosophy")
                     .font(.title3)
                     .fontWeight(.bold)
 
@@ -204,12 +204,12 @@ struct SettingsView: View {
                     privacyPoint(
                         icon: "iphone",
                         title: "Data stays on your device",
-                        detail: "Signalveil reads HealthKit data locally. We never upload your raw health data to any server."
+                        detail: "SignalVeil reads HealthKit data locally. We never upload your raw health data to any server."
                     )
                     privacyPoint(
                         icon: "eye.slash",
                         title: "Minimal reading",
-                        detail: "We only read 5-8 core metrics (sleep, heart rate, HRV, breathing, activity). We never access: workouts, nutrition, cycle tracking, blood glucose, or ECG data."
+                        detail: "We only read 8 core metrics (sleep, resting heart rate, HRV, respiratory rate, activity, steps, weight, blood oxygen). We never access: workouts, nutrition, cycle tracking, blood glucose, or ECG data."
                     )
                     privacyPoint(
                         icon: "brain",

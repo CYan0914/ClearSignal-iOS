@@ -1,4 +1,4 @@
-name: Signalveil
+name: SignalVeil
 options:
   bundleIdPrefix: com.cyan0914
   deploymentTarget:
@@ -20,7 +20,7 @@ settings:
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "1"
     TARGETED_DEVICE_FAMILY: "1,2"
-    INFOPLIST_KEY_CFBundleDisplayName: "Signalveil"
+    INFOPLIST_KEY_CFBundleDisplayName: "SignalVeil"
     INFOPLIST_KEY_UILaunchScreenGeneration: "Default"
     INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait"
     INFOPLIST_KEY_LSRequiresIPhoneOS: YES
@@ -36,7 +36,7 @@ settings:
       SWIFT_OPTIMIZATION_LEVEL: "-O"
 
 targets:
-  Signalveil:
+  SignalVeil:
     type: application
     platform: iOS
     sources:
@@ -49,13 +49,13 @@ targets:
           - "README.md"
           - "上架材料/"
           - "ExportOptions.plist"
-          - "Resources/Signalveil.entitlements"
+          - "Resources/SignalVeil.entitlements"
     settings:
       base:
-        PRODUCT_NAME: Signalveil
+        PRODUCT_NAME: SignalVeil
         PRODUCT_BUNDLE_IDENTIFIER: com.cyan0914.clearsignal
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        CODE_SIGN_ENTITLEMENTS: Resources/Signalveil.entitlements
+        CODE_SIGN_ENTITLEMENTS: Resources/SignalVeil.entitlements
         INFOPLIST_FILE: Resources/Info.plist
         GENERATE_INFOPLIST_FILE: NO
       configs:

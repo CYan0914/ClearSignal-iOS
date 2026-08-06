@@ -1,6 +1,6 @@
 import Foundation
 
-/// The 5-8 core health metrics Signalveil tracks.
+/// The 8 core health metrics SignalVeil tracks.
 /// Every metric is viewed as 7/30 day trend — NEVER single-day absolute value.
 enum HealthMetric: String, CaseIterable, Identifiable, Codable {
     case sleepDuration = "sleep_duration"

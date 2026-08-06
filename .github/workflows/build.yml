@@ -1,4 +1,4 @@
-name: Build Signalveil
+name: Build SignalVeil
 
 on:
   workflow_dispatch:
@@ -54,8 +54,8 @@ jobs:
       - name: Clean stale project (avoid Xcode format mismatch)
         run: |
           echo "Before cleanup:"
-          ls -la Signalveil.xcodeproj/ 2>/dev/null || echo "  (no xcodeproj)"
-          rm -rf Signalveil.xcodeproj
+          ls -la SignalVeil.xcodeproj/ 2>/dev/null || echo "  (no xcodeproj)"
+          rm -rf SignalVeil.xcodeproj
           echo "After cleanup: done"
 
       - name: Generate Xcode Project
@@ -78,8 +78,8 @@ jobs:
       - name: Build for Simulator
         run: |
           xcodebuild build \
-            -project Signalveil.xcodeproj \
-            -scheme Signalveil \
+            -project SignalVeil.xcodeproj \
+            -scheme SignalVeil \
             -sdk iphonesimulator \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -132,8 +132,8 @@ jobs:
       - name: Clean stale project (avoid Xcode format mismatch)
         run: |
           echo "Before cleanup:"
-          ls -la Signalveil.xcodeproj/ 2>/dev/null || echo "  (no xcodeproj)"
-          rm -rf Signalveil.xcodeproj
+          ls -la SignalVeil.xcodeproj/ 2>/dev/null || echo "  (no xcodeproj)"
+          rm -rf SignalVeil.xcodeproj
           echo "After cleanup: done"
 
       - name: Generate Xcode Project
@@ -171,12 +171,12 @@ jobs:
           echo "$APPSTORE_API_KEY" > /tmp/AuthKey_${APPSTORE_KEY_ID}.p8
           xcodebuild \
             archive \
-            -project Signalveil.xcodeproj \
-            -scheme Signalveil \
+            -project SignalVeil.xcodeproj \
+            -scheme SignalVeil \
             -configuration Release \
             -destination generic/platform=iOS \
             -sdk iphoneos \
-            -archivePath Signalveil.xcarchive \
+            -archivePath SignalVeil.xcarchive \
             -allowProvisioningUpdates \
             -authenticationKeyPath /tmp/AuthKey_${APPSTORE_KEY_ID}.p8 \
             -authenticationKeyID "$APPSTORE_KEY_ID" \
@@ -198,16 +198,16 @@ jobs:
             -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
             -allowProvisioningUpdates \
             -exportArchive \
-            -archivePath Signalveil.xcarchive \
-            -exportPath ./Signalveil.ipa \
+            -archivePath SignalVeil.xcarchive \
+            -exportPath ./SignalVeil.ipa \
             -exportOptionsPlist ExportOptions.plist
         working-directory: .
 
       - name: Upload IPA (artifact backup)
         uses: actions/upload-artifact@v4
         with:
-          name: Signalveil-IPA
-          path: Signalveil.ipa/Signalveil.ipa
+          name: SignalVeil-IPA
+          path: SignalVeil.ipa/SignalVeil.ipa
           retention-days: 30
 
       - name: Upload to App Store Connect (TestFlight)
@@ -223,7 +223,7 @@ jobs:
           mkdir -p ~/private_keys
           echo "$APPSTORE_API_KEY" > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
           xcrun altool --upload-app \
-            -f "Signalveil.ipa/Signalveil.ipa" \
+            -f "SignalVeil.ipa/SignalVeil.ipa" \
             --apiKey "$APPSTORE_KEY_ID" \
             --apiIssuer "$APPSTORE_ISSUER_ID" \
             --type ios \

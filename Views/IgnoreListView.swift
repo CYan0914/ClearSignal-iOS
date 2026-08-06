@@ -3,14 +3,29 @@ import SwiftUI
 /// Manage what to ignore — the "declutter" dashboard.
 /// Users can add metrics, notifications, and app features to their ignore list.
 struct IgnoreListView: View {
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
     @State private var ignoreList: [IgnoreListItem] = []
     @State private var showAddSheet = false
+    @State private var showPaywall = false
 
     private let store = LocalDataStore.shared
 
     var body: some View {
         NavigationStack {
-            List {
+            Group {
+                if subscriptionManager.isPro {
+                    ignoreListContent
+                } else {
+                    lockedView
+                }
+            }
+            .navigationTitle("Quiet Mode")
+            .sheet(isPresented: $showPaywall) { PaywallView() }
+        }
+    }
+
+    private var ignoreListContent: some View {
+        List {
                 // --- Active ignores ---
                 if !ignoreList.isEmpty {
                     Section {
@@ -62,6 +77,34 @@ struct IgnoreListView: View {
             .onAppear {
                 ignoreList = store.ignoreList
             }
+    }
+
+    /// Locked state for free users — "declutter" is a Pro feature.
+    private var lockedView: some View {
+        VStack(spacing: 16) {
+            Spacer()
+            Image(systemName: "bell.slash.fill")
+                .font(.system(size: 56))
+                .foregroundColor(.secondary)
+            Text("Ignore List is a Premium feature")
+                .font(.title3)
+                .fontWeight(.bold)
+            Text("Decide what to mute — the app only shows what's worth your attention.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+            Button(action: { showPaywall = true }) {
+                Text("Upgrade to Premium")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: 260)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .padding(.top, 8)
+            Spacer()
         }
     }
 

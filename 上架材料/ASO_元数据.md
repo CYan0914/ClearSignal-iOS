@@ -1,7 +1,7 @@
-# Signalveil App Store Listing (ASO Metadata)
+# SignalVeil App Store Listing (ASO Metadata)
 
 > Target: US App Store (美区)
-> App Name: Signalveil
+> App Name: SignalVeil
 > SKU: com.cyan0914.clearsignal
 > Bundle ID: com.cyan0914.clearsignal
 
@@ -11,7 +11,7 @@
 
 | 字段 | 值 |
 |------|-----|
-| App Name | Signalveil |
+| App Name | SignalVeil |
 | Subtitle | Health Data, Minus the Noise |
 | Category | Health & Fitness |
 | Subcategory | Medical (备用) |
@@ -26,17 +26,17 @@ health,data,apple,watch,sleep,hrv,heart,rate,trend,tracker,oura,whoop,recovery,s
 
 **Stop drowning in health data. Start understanding what actually matters.**
 
-Your Apple Watch, Oura ring, and wearable devices generate dozens of metrics every day. Most of them are noise. Signalveil is the FIRST app that tells you what to ignore — not just what to track.
+Your Apple Watch, Oura ring, and wearable devices generate dozens of metrics every day. Most of them are noise. SignalVeil is the FIRST app that tells you what to ignore — not just what to track.
 
-**What Signalveil Does:**
+**What SignalVeil Does:**
 - 📊 Translates your wearable data into ONE simple daily brief
 - 🔇 Identifies noise: single-day scores, meaningless notifications
 - ⚖️ Resolves conflicts: when your device says "recover" but you feel great — trust your body
 - 🎯 Shows only the metrics that matter for YOUR goal (running, weight loss, stress management)
 - 🔒 Your raw health data NEVER leaves your device
 
-**Why Signalveil is Different:**
-Every other health app tries to show you MORE data. More charts, more scores, more notifications. That's exactly what creates health anxiety. Signalveil does the opposite: we curate 5-8 core metrics, analyze ONLY trends (never single-day values), and actively help you mute the noise.
+**Why SignalVeil is Different:**
+Every other health app tries to show you MORE data. More charts, more scores, more notifications. That's exactly what creates health anxiety. SignalVeil does the opposite: we curate 5-8 core metrics, analyze ONLY trends (never single-day values), and actively help you mute the noise.
 
 **Premium Features:**
 - Daily AI Morning Brief — a natural-language summary of your health trends

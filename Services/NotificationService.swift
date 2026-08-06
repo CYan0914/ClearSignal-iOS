@@ -18,8 +18,8 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
 
     /// Schedule the daily morning brief notification (fires at 8:00 AM local time)
     func scheduleMorningBrief(triggerOnTrendAnomalyOnly: Bool = false) {
-        // Remove any pending notifications first
-        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        // Remove only the morning brief (never wipe the weekly report).
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["morning-brief"])
 
         let content = UNMutableNotificationContent()
         content.title = "☀️ Morning Brief"
@@ -41,6 +41,35 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
                 print("[NotificationService] Failed to schedule: \(error)")
+            }
+        }
+    }
+
+    /// Schedule the Sunday weekly report notification (fires 9:00 AM Sunday).
+    /// This is the weekly "ritual" that brings users back and showcases the Pro deep-dive.
+    func scheduleWeeklyBrief() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["weekly-brief"])
+
+        let content = UNMutableNotificationContent()
+        content.title = "📊 Your Weekly Report"
+        content.body = "Your week-over-week trends are ready. Tap to see the deep-dive."
+        content.sound = .default
+
+        var dateComponents = DateComponents()
+        dateComponents.weekday = 1  // Sunday
+        dateComponents.hour = 9
+        dateComponents.minute = 0
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        let request = UNNotificationRequest(
+            identifier: "weekly-brief",
+            content: content,
+            trigger: trigger
+        )
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("[NotificationService] Weekly schedule failed: \(error)")
             }
         }
     }

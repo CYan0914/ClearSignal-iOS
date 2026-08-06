@@ -85,7 +85,7 @@ struct OnboardingView: View {
         case .welcome: return "Get Started"
         case .goalSelection: return "Continue"
         case .healthKit: return "Connect Apple Health"
-        case .done: return "Start Using Signalveil"
+        case .done: return "Start Using SignalVeil"
         }
     }
 
@@ -108,7 +108,19 @@ struct OnboardingView: View {
             }
         case .done:
             store.isOnboardingComplete = true
+            scheduleDefaultNotifications()
             dismiss()
+        }
+    }
+
+    /// On completion, we ask for notification permission and schedule the two
+    /// retention pushes: the daily morning brief + the Sunday weekly report.
+    /// (Still only ever 1 push/day — the app stays intentionally quiet.)
+    private func scheduleDefaultNotifications() {
+        Task {
+            _ = try? await NotificationService.shared.requestPermission()
+            NotificationService.shared.scheduleMorningBrief()
+            NotificationService.shared.scheduleWeeklyBrief()
         }
     }
 
@@ -123,7 +135,7 @@ struct OnboardingView: View {
                 .foregroundColor(.blue)
                 .padding(.bottom, 8)
 
-            Text("Signalveil")
+            Text("SignalVeil")
                 .font(.largeTitle)
                 .fontWeight(.bold)
 
@@ -221,7 +233,7 @@ struct OnboardingView: View {
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("We only read 5-8 core metrics — not everything.\nYour data never leaves your device.\nYou can revoke access anytime in Settings.")
+            Text("We only read 8 core metrics — not everything.\nYour data never leaves your device.\nYou can revoke access anytime in Settings.")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -231,7 +243,7 @@ struct OnboardingView: View {
                 Text("We read:")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                Label("Sleep, Heart Rate, HRV, Breathing, Activity", systemImage: "checkmark.circle.fill")
+                Label("Sleep, Heart Rate, HRV, Breathing, Activity, Steps, Weight, Blood Oxygen", systemImage: "checkmark.circle.fill")
                     .font(.subheadline)
                     .foregroundColor(.green)
                 Text("We DON'T read:")

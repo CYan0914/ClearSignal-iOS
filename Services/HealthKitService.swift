@@ -2,7 +2,7 @@ import Foundation
 import HealthKit
 
 /// HealthKit data reading service.
-/// Reads ONLY 5-8 core metrics. Never reads all HealthKit data.
+/// Reads ONLY the 8 core metrics. Never reads all HealthKit data.
 /// All data stays on-device (read-only access).
 @MainActor
 final class HealthKitService: ObservableObject {

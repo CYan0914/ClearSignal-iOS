@@ -23,6 +23,9 @@ struct WeeklyBrief: Identifiable, Codable {
     let briefText: String
     /// The one actionable suggestion
     let weeklySuggestion: String
+    /// Whether the brief text came from AI (true) or the template fallback (false).
+    /// nil = legacy cached brief / no AI attempted.
+    let aiUsed: Bool?
 
     init(weekStart: String,
          weekEnd: String,
@@ -31,7 +34,8 @@ struct WeeklyBrief: Identifiable, Codable {
          feelingSummary: FeelingSummary,
          itemsIgnoredThisWeek: Int = 0,
          briefText: String,
-         weeklySuggestion: String) {
+         weeklySuggestion: String,
+         aiUsed: Bool? = nil) {
         self.id = UUID()
         self.weekStart = weekStart
         self.weekEnd = weekEnd
@@ -42,6 +46,7 @@ struct WeeklyBrief: Identifiable, Codable {
         self.itemsIgnoredThisWeek = itemsIgnoredThisWeek
         self.briefText = briefText
         self.weeklySuggestion = weeklySuggestion
+        self.aiUsed = aiUsed
     }
 }
 

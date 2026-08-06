@@ -4,10 +4,12 @@ import SwiftUI
 /// Shows trend chart area, signal/noise verdict, and why this metric matters.
 struct TrendDetailView: View {
     let metric: HealthMetric
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
     @StateObject private var healthKit = HealthKitService()
     @State private var values: [HealthMetricValue] = []
     @State private var trend: TrendResult?
     @State private var isLoading = true
+    @State private var showPaywall = false
 
     private let store = LocalDataStore.shared
 
@@ -36,6 +38,7 @@ struct TrendDetailView: View {
         .task {
             await loadData()
         }
+        .sheet(isPresented: $showPaywall) { PaywallView() }
     }
 
     // MARK: - Subviews
@@ -146,10 +149,10 @@ struct TrendDetailView: View {
 
     private var dataBreakdownCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Raw Data (Last 7 Days)", systemImage: "list.bullet.clipboard")
+            Label("Raw Data (Last \(historyWindow) Days)", systemImage: "list.bullet.clipboard")
                 .font(.headline)
 
-            let sorted = values.sorted(by: { $0.date > $1.date }).prefix(7)
+            let sorted = values.sorted(by: { $0.date > $1.date }).prefix(historyWindow)
             ForEach(Array(sorted)) { v in
                 HStack {
                     Text(v.date.formatted(date: .abbreviated, time: .omitted))
@@ -162,6 +165,23 @@ struct TrendDetailView: View {
                     Text(v.source)
                         .font(.caption2)
                         .foregroundColor(.secondary)
+                }
+            }
+
+            if !subscriptionManager.isPro {
+                Divider()
+                HStack(spacing: 8) {
+                    Image(systemName: "lock.fill")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("Free plan shows 7 days. Upgrade to see the full 30-day picture.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Button("Upgrade") { showPaywall = true }
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.blue)
                 }
             }
         }
@@ -224,6 +244,11 @@ struct TrendDetailView: View {
             print("[TrendDetailView] Error loading \(metric.displayName): \(error)")
         }
     }
+
+    // MARK: - Pro Gating
+
+    /// Free users get 7 days of raw history; Pro unlocks the full 30 days.
+    private var historyWindow: Int { subscriptionManager.isPro ? 30 : 7 }
 
     // MARK: - Education content
 

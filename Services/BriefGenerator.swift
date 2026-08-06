@@ -62,7 +62,8 @@ struct BriefGenerator {
                     conflictVerdict: conflictVerdict,
                     ignoreCount: ignoreCount,
                     briefText: briefText,
-                    takeaway: takeaway
+                    takeaway: takeaway,
+                    aiUsed: true
                 )
             } catch {
                 // Fallback to template on AI failure
@@ -110,7 +111,8 @@ struct BriefGenerator {
                     feelingSummary: feelingSummary,
                     itemsIgnoredThisWeek: ignoreCount,
                     briefText: briefText,
-                    weeklySuggestion: suggestion
+                    weeklySuggestion: suggestion,
+                    aiUsed: true
                 )
             } catch {
                 print("[BriefGenerator] Weekly AI failed: \(error.localizedDescription)")
@@ -127,7 +129,8 @@ struct BriefGenerator {
             feelingSummary: feelingSummary,
             itemsIgnoredThisWeek: ignoreCount,
             briefText: templateText,
-            weeklySuggestion: "Keep listening to your body — that's the best metric. 💪"
+            weeklySuggestion: "Keep listening to your body — that's the best metric. 💪",
+            aiUsed: false
         )
     }
 

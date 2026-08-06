@@ -5,12 +5,11 @@ import SwiftUI
 struct TodayView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @StateObject private var healthKit = HealthKitService()
+    @StateObject private var store = LocalDataStore.shared
     @State private var brief: DailyBrief?
     @State private var isLoading = true
     @State private var showFeelLog = false
     @State private var showOnboarding = false
-
-    private let store = LocalDataStore.shared
 
     var body: some View {
         NavigationStack {
@@ -32,7 +31,7 @@ struct TodayView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Signalveil")
+            .navigationTitle("SignalVeil")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if isLoading {
@@ -66,6 +65,16 @@ struct TodayView: View {
             HStack {
                 Text("☀️ Morning Brief")
                     .font(.headline)
+                if brief?.aiUsed == true {
+                    Text("AI")
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.blue)
+                        .clipShape(Capsule())
+                }
                 Spacer()
                 Text(Date().formatted(date: .abbreviated, time: .omitted))
                     .font(.caption)
@@ -112,6 +121,14 @@ struct TodayView: View {
                         }
                     }
                 }
+
+                // Pro transparency: if AI was expected but failed, say so instead of silently downgrading.
+                if subscriptionManager.isPro, brief.aiUsed == false {
+                    Divider()
+                    Text("AI briefly unavailable — showing the standard brief. Pull to refresh to retry.")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             } else {
                 Text("No brief yet. Pull to refresh, or complete your first feel check-in.")
                     .font(.subheadline)
@@ -142,6 +159,14 @@ struct TodayView: View {
                         Text("Tap to check in — it takes 2 seconds")
                             .font(.caption)
                             .foregroundColor(.secondary)
+                    }
+
+                    if store.feelStreak > 0 {
+                        Text(streakText)
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(isStreakMilestone ? .orange : .secondary)
+                            .padding(.top, 2)
                     }
                 }
                 Spacer()
@@ -220,6 +245,24 @@ struct TodayView: View {
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.03), radius: 4, y: 1)
+    }
+
+    /// 🔥 Check-in streak copy — milestones at 7/14/30/60/100 days.
+    private var streakText: String {
+        let s = store.feelStreak
+        if isStreakMilestone {
+            return "🔥 \(s)-day streak — milestone unlocked! 🎉"
+        }
+        return "🔥 \(s)-day check-in streak"
+    }
+
+    private var isStreakMilestone: Bool {
+        LocalDataStore.streakMilestones.contains(store.feelStreak)
+    }
+
+    /// Free tier gets one AI brief per week (Sundays) as a taste of the premium layer.
+    private var isFreeSunday: Bool {
+        !subscriptionManager.isPro && Calendar.current.component(.weekday, from: Date()) == 1
     }
 
     private var weeklyPreviewCard: some View {
@@ -312,7 +355,7 @@ struct TodayView: View {
             recentFeelings: recentFeelings,
             userGoal: goal,
             ignoreCount: ignoreCount,
-            useAI: subscriptionManager.isPro
+            useAI: subscriptionManager.isPro || isFreeSunday
         )
 
         brief = generated

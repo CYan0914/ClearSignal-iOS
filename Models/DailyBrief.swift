@@ -24,6 +24,9 @@ struct DailyBrief: Identifiable, Codable {
     let briefText: String
     /// One-line takeaway
     let takeaway: String
+    /// Whether the brief text came from AI (true) or the template fallback (false).
+    /// nil = legacy cached brief / no AI attempted.
+    let aiUsed: Bool?
 
     init(date: String = Date().dayKey(),
          metricTrends: [TrendResult],
@@ -32,7 +35,8 @@ struct DailyBrief: Identifiable, Codable {
          conflictVerdict: ConflictVerdict? = nil,
          ignoreCount: Int = 0,
          briefText: String,
-         takeaway: String) {
+         takeaway: String,
+         aiUsed: Bool? = nil) {
         self.id = UUID()
         self.date = date
         self.generatedAt = Date()
@@ -43,6 +47,7 @@ struct DailyBrief: Identifiable, Codable {
         self.ignoreCount = ignoreCount
         self.briefText = briefText
         self.takeaway = takeaway
+        self.aiUsed = aiUsed
     }
 
     // MARK: - Template brief (offline fallback - no AI needed)
@@ -83,7 +88,8 @@ struct DailyBrief: Identifiable, Codable {
             classifications: classifications,
             conflictVerdict: conflictVerdict,
             briefText: briefText,
-            takeaway: generateTakeaway(trends: trends, goal: userGoal)
+            takeaway: generateTakeaway(trends: trends, goal: userGoal),
+            aiUsed: false
         )
     }
 

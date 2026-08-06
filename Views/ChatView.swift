@@ -9,7 +9,12 @@ struct ChatView: View {
     @State private var isLoading = false
     @State private var showPaywall = false
 
-    private let store = LocalDataStore.shared
+    @StateObject private var store = LocalDataStore.shared
+
+    private var isPro: Bool { subscriptionManager.isPro }
+
+    /// Free users get a 3-question taste of AI chat before the paywall appears.
+    private var canUseChat: Bool { isPro || store.freeChatRemaining > 0 }
 
     var body: some View {
         NavigationStack {
@@ -48,10 +53,13 @@ struct ChatView: View {
                     }
                 }
 
+                // Free-trial / upgrade banner
+                trialBanner
+
                 // Input bar
                 inputBar
             }
-            .navigationTitle("Ask Signalveil")
+            .navigationTitle("Ask SignalVeil")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
@@ -78,19 +86,52 @@ struct ChatView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
+    /// Free users see their remaining trial questions (or the upgrade prompt).
+    @ViewBuilder
+    private var trialBanner: some View {
+        if !isPro {
+            if store.freeChatRemaining > 0 {
+                HStack(spacing: 6) {
+                    Image(systemName: "gift")
+                    Text("Free trial — \(store.freeChatRemaining) question\(store.freeChatRemaining == 1 ? "" : "s") left. Upgrade for unlimited.")
+                        .font(.caption)
+                    Spacer()
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.blue.opacity(0.1))
+            } else {
+                HStack(spacing: 6) {
+                    Image(systemName: "crown.fill")
+                        .foregroundColor(.orange)
+                    Text("Trial used up. Upgrade to keep asking about your health.")
+                        .font(.caption)
+                    Spacer()
+                    Button("Upgrade") { showPaywall = true }
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.blue)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.orange.opacity(0.1))
+            }
+        }
+    }
+
     private var inputBar: some View {
         HStack(spacing: 8) {
             TextField("Ask about your health data...", text: $inputText, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
                 .lineLimit(3)
-                .disabled(!subscriptionManager.isPro)
+                .disabled(!canUseChat)
 
             Button(action: sendMessage) {
-                Image(systemName: "arrow.up.circle.fill")
+                Image(systemName: isPro ? "arrow.up.circle.fill" : "lock.circle.fill")
                     .font(.title2)
-                    .foregroundColor(inputText.isEmpty || isLoading ? .secondary : .blue)
+                    .foregroundColor(inputText.isEmpty || isLoading || !canUseChat ? .secondary : .blue)
             }
-            .disabled(inputText.isEmpty || isLoading)
+            .disabled(inputText.isEmpty || isLoading || !canUseChat)
         }
         .padding()
         .background(Color(.systemBackground))
@@ -100,9 +141,14 @@ struct ChatView: View {
     // MARK: - Actions
 
     private func sendMessage() {
-        guard !inputText.isEmpty, subscriptionManager.isPro else {
-            if !subscriptionManager.isPro { showPaywall = true }
+        guard !inputText.isEmpty, canUseChat else {
+            if !isPro { showPaywall = true }
             return
+        }
+
+        // Consume one free-trial question for non-Pro users.
+        if !isPro {
+            store.incrementChatQuota()
         }
 
         let userQuestion = inputText.trimmingCharacters(in: .whitespacesAndNewlines)

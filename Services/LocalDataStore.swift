@@ -14,6 +14,11 @@ final class LocalDataStore: ObservableObject {
     @Published var latestDailyBrief: DailyBrief?
     @Published var latestWeeklyBrief: WeeklyBrief?
     @Published var notificationPref: NotificationPref = .daily
+    /// Free-trial questions used by non-Pro users in Chat (once exhausted → paywall).
+    @Published var freeChatQuotaUsed: Int = 0
+
+    /// Number of free AI chat questions a non-Pro user gets to taste the feature.
+    static let freeChatTrialLimit = 3
 
     private let defaults = UserDefaults.standard
 
@@ -26,6 +31,7 @@ final class LocalDataStore: ObservableObject {
         static let notificationPref = "notification_pref"
         static let onboardingComplete = "onboarding_complete"
         static let installDate = "install_date"
+        static let freeChatQuotaUsed = "free_chat_quota_used"
     }
 
     init() {
@@ -41,6 +47,7 @@ final class LocalDataStore: ObservableObject {
         latestDailyBrief = loadCodable(key: Keys.latestDailyBrief)
         latestWeeklyBrief = loadCodable(key: Keys.latestWeeklyBrief)
         notificationPref = loadCodable(key: Keys.notificationPref) ?? .daily
+        freeChatQuotaUsed = defaults.integer(forKey: Keys.freeChatQuotaUsed)
 
         // Track install date
         if defaults.object(forKey: Keys.installDate) == nil {
@@ -129,6 +136,46 @@ final class LocalDataStore: ObservableObject {
             latestFeeling: logs.last?.feeling
         )
     }
+
+    // MARK: - Free Chat Trial Quota
+
+    /// Questions a non-Pro user can still ask before the paywall appears.
+    var freeChatRemaining: Int {
+        max(0, Self.freeChatTrialLimit - freeChatQuotaUsed)
+    }
+
+    func incrementChatQuota() {
+        freeChatQuotaUsed = min(Self.freeChatTrialLimit, freeChatQuotaUsed + 1)
+        defaults.set(freeChatQuotaUsed, forKey: Keys.freeChatQuotaUsed)
+    }
+
+    // MARK: - Check-in Streak
+
+    /// Consecutive days with a feeling check-in (today, or yesterday if today not yet logged).
+    /// Drives the retention habit loop: the longer the streak, the more your data is worth.
+    var feelStreak: Int {
+        let cal = Calendar.current
+        let dayKeys = Set(feelLogs.map { $0.dayKey })
+        guard !dayKeys.isEmpty else { return 0 }
+
+        var streak = 0
+        var date = Date()
+        // If today isn't logged yet, a streak can still continue from yesterday.
+        if !dayKeys.contains(date.dayKey()) {
+            guard let y = cal.date(byAdding: .day, value: -1, to: date) else { return 0 }
+            if !dayKeys.contains(y.dayKey()) { return 0 }
+            date = y
+        }
+        while dayKeys.contains(date.dayKey()) {
+            streak += 1
+            guard let prev = cal.date(byAdding: .day, value: -1, to: date) else { break }
+            date = prev
+        }
+        return streak
+    }
+
+    /// Celebratory checkpoints for the streak habit loop.
+    static let streakMilestones: Set<Int> = [7, 14, 30, 60, 100]
 
     // MARK: - Codable Helpers
 
