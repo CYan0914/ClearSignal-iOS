@@ -13,7 +13,7 @@ final class SubscriptionManager: ObservableObject {
     /// Human-readable reason the paywall can't show pricing (network error, no offering configured, etc).
     @Published var offeringError: String?
 
-    private let apiKey = "appl_FMDsmQuAewPKirJginmwmALxQiS"
+    private let apiKey = "appl_TwXZbKYUzulAOARhWFVRsYLEgKo"
 
     init() {
         configure()
