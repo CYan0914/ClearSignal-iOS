@@ -8,6 +8,10 @@ final class SubscriptionManager: ObservableObject {
     @Published var isPro: Bool = false
     @Published var offerings: Offerings?
     @Published var customerInfo: CustomerInfo?
+    /// Set while an offerings fetch is in flight — lets the paywall distinguish "loading" from "failed".
+    @Published var isLoadingOfferings = false
+    /// Human-readable reason the paywall can't show pricing (network error, no offering configured, etc).
+    @Published var offeringError: String?
 
     private let apiKey = "appl_FMDsmQuAewPKirJginmwmALxQiS"
 
@@ -34,13 +38,23 @@ final class SubscriptionManager: ObservableObject {
         }
     }
 
+    /// Fetch the RevenueCat offerings. Safe to call repeatedly (e.g. paywall onAppear / Retry).
     func fetchOfferings() {
+        isLoadingOfferings = true
+        offeringError = nil
         Task {
             do {
-                self.offerings = try await Purchases.shared.offerings()
+                let result = try await Purchases.shared.offerings()
+                self.offerings = result
+                if result.current == nil {
+                    // Request succeeded but the dashboard has no current offering configured.
+                    self.offeringError = "No pricing configured yet — check back soon."
+                }
             } catch {
-                print("[SubscriptionManager] Failed to fetch offerings: \(error)")
+                self.offerings = nil
+                self.offeringError = error.localizedDescription
             }
+            self.isLoadingOfferings = false
         }
     }
 

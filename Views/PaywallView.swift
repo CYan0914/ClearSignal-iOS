@@ -48,8 +48,20 @@ struct PaywallView: View {
                         }
                     }
                     .padding(.horizontal, 30)
-                } else {
+                } else if subscriptionManager.isLoadingOfferings {
                     ProgressView("Loading pricing...")
+                } else {
+                    VStack(spacing: 10) {
+                        Text(subscriptionManager.offeringError ?? "Pricing is temporarily unavailable.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button("Retry") { subscriptionManager.fetchOfferings() }
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.horizontal, 30)
                 }
 
                 // Error
@@ -78,6 +90,13 @@ struct PaywallView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Maybe Later") { dismiss() }
+                }
+            }
+            .task {
+                // Re-fetch pricing each time the paywall appears, so a failed launch-time
+                // fetch doesn't leave us stuck on a spinner.
+                if subscriptionManager.offerings?.current == nil {
+                    subscriptionManager.fetchOfferings()
                 }
             }
         }

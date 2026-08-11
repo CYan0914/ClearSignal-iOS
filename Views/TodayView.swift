@@ -161,15 +161,16 @@ struct TodayView: View {
                             .foregroundColor(.secondary)
                     }
 
-                    if store.feelStreak > 0 {
-                        Text(streakText)
+                    if isStreakMilestone {
+                        Text("🎉 \(store.feelStreak)-day streak — milestone unlocked!")
                             .font(.caption2)
                             .fontWeight(.medium)
-                            .foregroundColor(isStreakMilestone ? .orange : .secondary)
+                            .foregroundColor(.orange)
                             .padding(.top, 2)
                     }
                 }
                 Spacer()
+                streakBadge
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -247,13 +248,24 @@ struct TodayView: View {
         .shadow(color: .black.opacity(0.03), radius: 4, y: 1)
     }
 
-    /// 🔥 Check-in streak copy — milestones at 7/14/30/60/100 days.
-    private var streakText: String {
-        let s = store.feelStreak
-        if isStreakMilestone {
-            return "🔥 \(s)-day streak — milestone unlocked! 🎉"
+    /// 🔥 Prominent streak badge on the check-in card — visible at a glance, not a footnote.
+    @ViewBuilder
+    private var streakBadge: some View {
+        if store.feelStreak > 0 {
+            HStack(spacing: 3) {
+                Image(systemName: "flame.fill")
+                    .font(.caption)
+                Text("\(store.feelStreak)")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+            }
+            .foregroundColor(.orange)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.orange.opacity(0.12))
+            .clipShape(Capsule())
+            .accessibilityLabel("\(store.feelStreak)-day check-in streak")
         }
-        return "🔥 \(s)-day check-in streak"
     }
 
     private var isStreakMilestone: Bool {
