@@ -7,10 +7,15 @@ import Foundation
 /// It receives structured output from the Rule Engine and only handles EXPRESSION.
 struct AIService {
 
-    // Using same DashScope config as TaoMind (from CLAUDE.md)
-    private static let apiKey = "sk-735d0822786540739e195eaca4a5df06"
-    private static let baseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    private static let model = "qwen-plus" // Good balance of speed/cost for translation tasks
+    // Self-hosted AI proxy on Tencent Cloud (signalveil.taomindapp.com).
+    // The real AI provider key lives on the server — never ships in the app binary.
+    private static let baseURL = "https://signalveil.taomindapp.com/v1"
+    // Shared app secret (X-App-Secret header; matches APP_SECRET in the server's
+    // .env). Injected at build time via Info.plist ← xcodebuild APP_SECRET=...,
+    // so it never appears in this repo. Server-side rate limiting bounds abuse.
+    private static let appSecret =
+        (Bundle.main.object(forInfoDictionaryKey: "APP_SECRET") as? String) ?? ""
+    private static let model = "qwen-plus" // ignored server-side; model is pinned in the proxy
 
     // MARK: - Translate Rule Engine Output → Natural Language Brief
 
@@ -65,6 +70,7 @@ struct AIService {
         - Include the conflict stats naturally.
         - End with ONE actionable, small suggestion for next week.
         - Keep under 300 words. Friendly, calm tone.
+        - If you reference any health/medical guideline, end with a short 'Sources:' line naming 1-2 real organizations.
         """
 
         let userPrompt = buildWeeklyBriefPrompt(
@@ -121,6 +127,11 @@ struct AIService {
         \(userQuestion)
 
         Answer based on the data context above. If the data doesn't answer the question, be honest about the limitation.
+
+        CITATIONS RULE (required): When you give any health/medical recommendation, explanation, or reference,
+        add a short "Sources:" line at the end of your answer with 1-3 real, well-known source names for the
+        relevant topic (e.g. "Sources: CDC — Sleep and Heart Health, American Heart Association — Resting Heart Rate").
+        If your answer is purely about the user's trend data (their own numbers), a citation is not required.
         """
 
         return try await callLLM(systemPrompt: systemPrompt, userPrompt: userPrompt)
@@ -133,7 +144,7 @@ struct AIService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue(appSecret, forHTTPHeaderField: "X-App-Secret")
         request.timeoutInterval = 30
 
         let body: [String: Any] = [
@@ -188,7 +199,7 @@ struct AIService {
         parts.append("")
         parts.append("Items ignored by user: \(ignoreCount)")
         parts.append("")
-        parts.append("Write a calm, brief morning summary (~150 words). Include the conflict resolution if present.")
+        parts.append("Write a calm, brief morning summary (~150 words). Include the conflict resolution if present. If you reference any health/medical guideline, end with a short 'Sources:' line naming 1-2 real organizations (e.g. CDC, American Heart Association).")
 
         return parts.joined(separator: "\n")
     }

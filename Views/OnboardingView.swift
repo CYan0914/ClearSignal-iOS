@@ -58,7 +58,10 @@ struct OnboardingView: View {
                 }
                 .padding(.horizontal, 40)
 
-                if currentStep != .welcome && currentStep != .done {
+                // Note: no Skip on the HealthKit step — the permission prompt is
+                // required by App Review (5.1.1(iv)); the user can still deny it
+                // inside the system dialog, which is handled gracefully.
+                if currentStep == .goalSelection {
                     Button("Skip") {
                         currentStep = .done
                     }
@@ -84,7 +87,7 @@ struct OnboardingView: View {
         switch currentStep {
         case .welcome: return "Get Started"
         case .goalSelection: return "Continue"
-        case .healthKit: return "Connect Apple Health"
+        case .healthKit: return "Continue"
         case .done: return "Start Using SignalVeil"
         }
     }
@@ -229,29 +232,25 @@ struct OnboardingView: View {
                 .foregroundColor(.pink)
                 .padding(.bottom, 8)
 
-            Text("Connect Apple Health")
+            Text("Allow SignalVeil to read your Health data")
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("We only read 8 core metrics — not everything.\nYour data never leaves your device.\nYou can revoke access anytime in Settings.")
+            Text("We'll ask for permission to read these 8 core metrics from Apple Health. Your data never leaves your device, and you can change access anytime in Settings → Health.")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("We read:")
+                Label("We read:", systemImage: "checkmark.circle.fill")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                Label("Sleep, Heart Rate, HRV, Breathing, Activity, Steps, Weight, Blood Oxygen", systemImage: "checkmark.circle.fill")
+                Label("Sleep, Heart Rate, HRV, Breathing, Activity, Steps, Weight, Blood Oxygen", systemImage: "heart.circle")
                     .font(.subheadline)
-                    .foregroundColor(.green)
-                Text("We DON'T read:")
+                    .foregroundColor(.primary)
+                Text("We never read or write workouts, nutrition, cycle tracking, blood glucose, or ECG.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.top, 4)
-                Label("Workouts, Nutrition, Cycle Tracking, Blood Glucose, ECG", systemImage: "xmark.circle.fill")
-                    .font(.subheadline)
                     .foregroundColor(.secondary)
             }
             .padding()

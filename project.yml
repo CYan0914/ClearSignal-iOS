@@ -58,6 +58,9 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Resources/SignalVeil.entitlements
         INFOPLIST_FILE: Resources/Info.plist
         GENERATE_INFOPLIST_FILE: NO
+        # Injected at build time (CI: GitHub Secrets → xcodebuild APP_SECRET=...).
+        # Never committed — this only wires the placeholder into Info.plist.
+        APP_SECRET: $(APP_SECRET)
       configs:
         Release: {}
     dependencies:

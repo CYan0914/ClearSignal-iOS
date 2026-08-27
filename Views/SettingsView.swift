@@ -105,12 +105,25 @@ struct SettingsView: View {
                     Text("Data & Privacy")
                 }
 
+                // --- Health Information ---
+                Section {
+                    NavigationLink {
+                        sourcesInfo
+                    } label: {
+                        Label("Health Information Sources", systemImage: "book.closed")
+                    }
+                } header: {
+                    Text("Health Information")
+                } footer: {
+                    Text("SignalVeil is a wellness-trend tool, not a medical device and not a provider of medical advice. Health information shown in the app comes from the sources listed here.")
+                }
+
                 // --- About ---
                 Section {
                     HStack {
                         Label("Version", systemImage: "info.circle")
                         Spacer()
-                        Text("1.0.0")
+                        Text(UIApplication.appVersion)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -188,6 +201,14 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    // MARK: - Health Information Sources
+
+    /// Persistently visible list of sources the app's health information draws from
+    /// (App Review Guideline 1.4.1). Also linked from the AI chat welcome card.
+    private var sourcesInfo: some View {
+        HealthInfoSourcesView()
+    }
+
     // MARK: - Privacy Info
 
     private var privacyInfo: some View {
@@ -248,5 +269,12 @@ struct SettingsView: View {
                 .foregroundColor(.secondary)
                 .padding(.leading, 32)
         }
+    }
+}
+
+extension UIApplication {
+    /// e.g. "1.0.0" — read from the built Info.plist.
+    static var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0"
     }
 }

@@ -2,6 +2,7 @@ import SwiftUI
 
 /// AI conversational Q&A — user asks questions about their health data.
 /// The LLM receives pre-digested rule engine conclusions, NEVER raw data.
+/// Health guidance is informational only, with sources (see HealthInfoSources).
 struct ChatView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @State private var messages: [ChatMessage] = []
@@ -79,6 +80,18 @@ struct ChatView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .lineSpacing(3)
+
+            Text("Health guidance here is informational only — not medical advice. When I reference a health topic, I list sources at the end of my answer.")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+
+            NavigationLink {
+                HealthInfoSourcesView()
+            } label: {
+                Label("Health information sources", systemImage: "book.closed")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+            }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -134,6 +147,8 @@ struct ChatView: View {
             .disabled(inputText.isEmpty || isLoading || !canUseChat)
         }
         .padding()
+        .frame(maxWidth: isIpad ? 680 : .infinity)   // don't stretch the field full-width on iPad
+        .frame(maxWidth: .infinity, alignment: .center)
         .background(Color(.systemBackground))
         .overlay(Divider(), alignment: .top)
     }

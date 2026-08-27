@@ -76,6 +76,8 @@ jobs:
           xcrun --sdk iphoneos --show-sdk-version || echo "⚠️ iphoneos SDK not found!"
 
       - name: Build for Simulator
+        env:
+          APP_SECRET: ${{ secrets.APP_SECRET }}
         run: |
           xcodebuild build \
             -project SignalVeil.xcodeproj \
@@ -84,6 +86,7 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
+            APP_SECRET="$APP_SECRET" \
             | xcpretty && exit ${PIPESTATUS[0]}
         working-directory: .
 
@@ -167,6 +170,7 @@ jobs:
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
         run: |
           echo "$APPSTORE_API_KEY" > /tmp/AuthKey_${APPSTORE_KEY_ID}.p8
           xcodebuild \
@@ -182,7 +186,8 @@ jobs:
             -authenticationKeyID "$APPSTORE_KEY_ID" \
             -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
             CODE_SIGN_STYLE=Automatic \
-            DEVELOPMENT_TEAM=H4VQ9X6KYK
+            DEVELOPMENT_TEAM=H4VQ9X6KYK \
+            APP_SECRET="$APP_SECRET"
         working-directory: .
 
       - name: Export IPA

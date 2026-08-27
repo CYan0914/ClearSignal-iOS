@@ -30,6 +30,11 @@ struct TodayView: View {
                     weeklyPreviewCard
                 }
                 .padding()
+                // Keep cards readable on iPad (avoid stretched full-width rows).
+                .frame(maxWidth: 680)
+                .frame(maxWidth: .infinity)
+                // iPad 11"+ landscape: show the trend grid in two columns.
+                .modifier(AdaptiveMetricGrid())
             }
             .navigationTitle("SignalVeil")
             .toolbar {
@@ -372,5 +377,32 @@ struct TodayView: View {
 
         brief = generated
         store.saveDailyBrief(generated)
+    }
+}
+
+/// On iPad (wide layouts) lay the metric rows out in a 2-column grid so each
+/// row is narrower and doesn't stretch full-width — fixes "crowded, hard to
+/// read" App Review feedback on iPad Air 11" (Guideline 4).
+private struct AdaptiveMetricGrid: ViewModifier {
+    @Environment(\.horizontalSizeClass) private var sizeClass
+
+    func body(content: Content) -> some View {
+        // Only wide screens (iPad) get the grid; iPhone stays a single column.
+        Group {
+            if sizeClass == .regular {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                    content
+                }
+            } else {
+                content
+            }
+        }
+    }
+}
+
+extension View {
+    /// True on iPad (any orientation except narrow split view); iPhone is always false.
+    var isIpad: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad
     }
 }
