@@ -173,6 +173,10 @@ jobs:
           APP_SECRET: ${{ secrets.APP_SECRET }}
         run: |
           echo "$APPSTORE_API_KEY" > /tmp/AuthKey_${APPSTORE_KEY_ID}.p8
+          # Build number must exceed every build already uploaded to this
+          # version train (1-6 exist) - run_number is monotonically increasing.
+          BUILD_NUM=${{ github.run_number }}
+          echo "Using build number $BUILD_NUM"
           xcodebuild \
             archive \
             -project SignalVeil.xcodeproj \
@@ -187,6 +191,7 @@ jobs:
             -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
             CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM=H4VQ9X6KYK \
+            CURRENT_PROJECT_VERSION="$BUILD_NUM" \
             APP_SECRET="$APP_SECRET"
         working-directory: .
 
