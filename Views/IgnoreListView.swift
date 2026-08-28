@@ -10,17 +10,19 @@ struct IgnoreListView: View {
 
     private let store = LocalDataStore.shared
 
+    /// Free-tier cap: 3 active ignore items. Pro unlocks unlimited.
+    private let freeItemCap = 3
+
     var body: some View {
         NavigationStack {
-            Group {
-                if subscriptionManager.isPro {
-                    ignoreListContent
-                } else {
-                    lockedView
-                }
-            }
-            .navigationTitle("Quiet Mode")
-            .sheet(isPresented: $showPaywall) { PaywallView() }
+            // B.1.1 — 4.3(b) anti-spam: the 3 Declutter Bundles are FREE for
+            // every user so reviewers and free-tier users can see SignalVeil's
+            // differentiator. Pro unlocks: unlimited custom items + 30-day
+            // history. Cap is on `ignoreList.count` for free users; bundles
+            // bypass the cap because they're the headline feature.
+            ignoreListContent
+                .navigationTitle("Quiet Mode")
+                .sheet(isPresented: $showPaywall) { PaywallView() }
         }
     }
 
@@ -63,7 +65,7 @@ struct IgnoreListView: View {
             .navigationTitle("Quiet Mode")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showAddSheet = true }) {
+                    Button(action: tapAdd) {
                         Image(systemName: "plus")
                     }
                 }
@@ -79,32 +81,12 @@ struct IgnoreListView: View {
             }
     }
 
-    /// Locked state for free users — "declutter" is a Pro feature.
-    private var lockedView: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            Image(systemName: "bell.slash.fill")
-                .font(.system(size: 56))
-                .foregroundColor(.secondary)
-            Text("Ignore List is a Premium feature")
-                .font(.title3)
-                .fontWeight(.bold)
-            Text("Decide what to mute — the app only shows what's worth your attention.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-            Button(action: { showPaywall = true }) {
-                Text("Upgrade to Premium")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: 260)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .padding(.top, 8)
-            Spacer()
+    /// "Add custom ignore" tap. Free users hit the cap → paywall; Pro goes straight to sheet.
+    private func tapAdd() {
+        if canAddCustomItem() {
+            showAddSheet = true
+        } else {
+            showPaywall = true
         }
     }
 
@@ -181,14 +163,20 @@ struct IgnoreListView: View {
     }
 
     private func addBundle(_ bundle: IgnoreBundle) {
+        // Bundles are always allowed — they're the headline feature, free for all.
         for (type, label) in bundle.items {
-            // Check if already in ignore list
             if !ignoreList.contains(where: { $0.label == label }) {
                 let item = IgnoreListItem(type: type, label: label, suggested: true)
                 store.addIgnoreItem(item)
             }
         }
         ignoreList = store.ignoreList
+    }
+
+    /// Free users: stop at the cap and prompt upgrade. Pro: no cap.
+    private func canAddCustomItem() -> Bool {
+        if subscriptionManager.isPro { return true }
+        return ignoreList.filter { !$0.suggested }.count < freeItemCap
     }
 }
 

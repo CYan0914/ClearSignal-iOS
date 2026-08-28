@@ -15,8 +15,22 @@ struct TodayView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
+                    // B.1.3 — "Today's noise" Veil banner sits above the brief
+                    // so reviewers/users see SignalVeil's central verb ("ignore")
+                    // before anything else.
+                    veilNoiseBanner
+
                     // --- AM Brief Card ---
                     briefCard
+
+                    // B.1.2 — ConflictVerdict promoted to a standalone C-position
+                    // card between brief and feel check-in. Visually unmissable;
+                    // its full advice text is always shown (no truncation).
+                    if let conflict = brief?.conflictVerdict {
+                        conflictCard(conflict)
+                    } else if let brief = brief {
+                        noConflictBadge
+                    }
 
                     // --- Quick Feel Check ---
                     feelCheckCard
@@ -111,21 +125,9 @@ struct TodayView: View {
                         .italic()
                 }
 
-                // Conflict highlight (if any)
-                if let conflict = brief.conflictVerdict {
-                    Divider()
-                    HStack(alignment: .top, spacing: 8) {
-                        Text("⚖️")
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Feel vs Score")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                            Text(conflict.advice)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
+                // B.1.2 — conflict is now a separate C-position card above
+                // (see `conflictCard`). Removed the inline mini-version here
+                // so we don't show the same conflict twice.
 
                 // Pro transparency: if AI was expected but failed, say so instead of silently downgrading.
                 if subscriptionManager.isPro, brief.aiUsed == false {
@@ -229,14 +231,23 @@ struct TodayView: View {
             Spacer()
 
             if isNoise {
-                Text("IGNORE")
-                    .font(.caption2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color(.systemGray5))
-                    .clipShape(Capsule())
+                // B.1.3 — Loud, distinct NOISE badge. Different from a generic
+                // metric label; reads as a deliberate "ignore this" verdict.
+                HStack(spacing: 3) {
+                    Text("🔇")
+                    Text("NOISE")
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                }
+                .foregroundColor(.red)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(Color.red.opacity(0.12))
+                .overlay(
+                    Capsule().stroke(Color.red.opacity(0.4), lineWidth: 1)
+                )
+                .clipShape(Capsule())
+                .accessibilityLabel("Noise — safe to ignore")
             } else if trend.isTrendAnomaly {
                 Image(systemName: "exclamationmark.triangle")
                     .foregroundColor(.orange)
@@ -251,6 +262,115 @@ struct TodayView: View {
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.03), radius: 4, y: 1)
+    }
+
+    // MARK: - B.1.2 / B.1.3 subviews
+
+    /// B.1.3 — "Today's noise" banner. Counts how many metrics are classified
+    /// NOISE today. Sits above the brief as the first thing the user sees.
+    @ViewBuilder
+    private var veilNoiseBanner: some View {
+        let noiseCount = brief?.classifications.filter { $0.classification == .noise }.count ?? 0
+        let total = brief?.classifications.count ?? 0
+        HStack(spacing: 10) {
+            Image(systemName: "bell.slash.fill")
+                .font(.subheadline)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Today's noise: \(noiseCount) of \(total) metrics")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                Text(noiseCount > 0
+                     ? "We've marked them — you can skip them."
+                     : "Nothing to ignore today.")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.85))
+            }
+            Spacer()
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            LinearGradient(
+                colors: [Color(red: 0.45, green: 0.34, blue: 0.62), Color(red: 0.66, green: 0.55, blue: 0.82)],
+                startPoint: .leading, endPoint: .trailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    /// B.1.2 — C-position conflict card. Always shows full advice; visually
+    /// distinct (purple-veiled background) so reviewers can't miss it.
+    @ViewBuilder
+    private func conflictCard(_ conflict: ConflictVerdict) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Text("⚖️")
+                    .font(.title3)
+                Text("Trust your body")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(red: 0.30, green: 0.22, blue: 0.45))
+                Spacer()
+                Text(conflict.resolution == .trustFeeling ? "you" :
+                     conflict.resolution == .trustTrend ? "watch" : "tracking")
+                    .font(.caption2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color(red: 0.45, green: 0.34, blue: 0.62))
+                    .clipShape(Capsule())
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top, spacing: 6) {
+                    Text("Watch said:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 86, alignment: .leading)
+                    Text(conflict.deviceConcern)
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                }
+                HStack(alignment: .top, spacing: 6) {
+                    Text("You said:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 86, alignment: .leading)
+                    Text("\(conflict.userFeeling.emoji) \(conflict.userFeeling.label)")
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                }
+            }
+            Text(conflict.advice)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.30, green: 0.22, blue: 0.45))
+                .padding(.top, 2)
+        }
+        .padding(14)
+        .background(Color(red: 0.94, green: 0.91, blue: 0.97))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14).stroke(Color(red: 0.66, green: 0.55, blue: 0.82), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    /// Quiet empty-state when there's no conflict — still shows SignalVeil's stance.
+    @ViewBuilder
+    private var noConflictBadge: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(.green)
+            Text("No conflicts today. Trust your body.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     /// 🔥 Prominent streak badge on the check-in card — visible at a glance, not a footnote.

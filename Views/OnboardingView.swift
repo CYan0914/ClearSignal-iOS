@@ -14,14 +14,15 @@ struct OnboardingView: View {
         case welcome
         case goalSelection
         case healthKit
+        case howItWorks
         case done
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Progress dots
+            // Progress dots (5 steps total)
             HStack(spacing: 8) {
-                ForEach(0..<4) { i in
+                ForEach(0..<5) { i in
                     Circle()
                         .fill(i <= stepIndex ? Color.blue : Color(.systemGray4))
                         .frame(width: 8, height: 8)
@@ -38,6 +39,8 @@ struct OnboardingView: View {
                     goalStep
                 case .healthKit:
                     healthKitStep
+                case .howItWorks:
+                    howItWorksStep
                 case .done:
                     doneStep
                 }
@@ -79,7 +82,8 @@ struct OnboardingView: View {
         case .welcome: return 0
         case .goalSelection: return 1
         case .healthKit: return 2
-        case .done: return 3
+        case .howItWorks: return 3
+        case .done: return 4
         }
     }
 
@@ -88,6 +92,7 @@ struct OnboardingView: View {
         case .welcome: return "Get Started"
         case .goalSelection: return "Continue"
         case .healthKit: return "Continue"
+        case .howItWorks: return "Got it"
         case .done: return "Start Using SignalVeil"
         }
     }
@@ -107,8 +112,13 @@ struct OnboardingView: View {
                     // Continue even if user denies — we'll show a message in app
                     print("[Onboarding] HealthKit auth denied: \(error)")
                 }
-                currentStep = .done
+                // 5.1.1(iv) preserved: HealthKit step must not be skippable.
+                // The new "How it works" explainer comes AFTER the permission
+                // prompt so it cannot be used to bypass consent.
+                currentStep = .howItWorks
             }
+        case .howItWorks:
+            currentStep = .done
         case .done:
             store.isOnboardingComplete = true
             scheduleDefaultNotifications()
@@ -259,6 +269,85 @@ struct OnboardingView: View {
 
             Spacer()
         }
+    }
+
+    // MARK: - How it works (B.1.4 — 4.3(b) anti-spam explainer)
+
+    private var howItWorksStep: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Image(systemName: "sparkles")
+                .font(.system(size: 56))
+                .foregroundColor(.blue)
+                .padding(.bottom, 4)
+
+            Text("How SignalVeil works")
+                .font(.title2)
+                .fontWeight(.bold)
+
+            Text("SignalVeil is a noise filter, not an AI coach. Here's the loop:")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
+
+            VStack(alignment: .leading, spacing: 14) {
+                howItWorksRow(
+                    number: "1",
+                    icon: "function",
+                    title: "Rule engine judges",
+                    body: "Every metric is labeled SIGNAL (worth watching) or NOISE (safe to ignore). No AI makes the call."
+                )
+                howItWorksRow(
+                    number: "2",
+                    icon: "face.smiling",
+                    title: "You check in daily",
+                    body: "One tap: good / so-so / not great. Your feeling matters more than any score."
+                )
+                howItWorksRow(
+                    number: "3",
+                    icon: "scalemass",
+                    title: "We arbitrate",
+                    body: "If your watch says one thing and you feel another, we trust you (unless 3+ day trend anomaly)."
+                )
+            }
+            .padding(.horizontal, 24)
+
+            Spacer()
+        }
+    }
+
+    private func howItWorksRow(number: String, icon: String, title: String, body: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(Color.blue)
+                    .frame(width: 28, height: 28)
+                Text(number)
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Image(systemName: icon)
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    Text(title)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                }
+                Text(body)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+        }
+        .padding(12)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
     }
 
     // MARK: - Done
