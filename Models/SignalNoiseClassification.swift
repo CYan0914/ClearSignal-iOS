@@ -33,8 +33,11 @@ extension SignalNoiseVerdict {
     /// Classify a metric's reading based on the rule engine.
     /// Rules are deterministic — no AI involved in judgment.
     static func classify(metric: HealthMetric, isSingleDay: Bool, hasTrendAnomaly: Bool) -> SignalNoiseVerdict {
-        // Rule 1: All single-day scores from wearables are NOISE
-        // (Sleep stage accuracy ~60-75%, HRV day-to-day CV ~20-40%)
+        // Rule 1: All single-day scores from wearables are NOISE.
+        // Wearables infer sleep stages and HRV from movement and heart rate rather
+        // than measuring them directly, so a single day sits inside the noise floor.
+        // Deliberately no quoted accuracy figures here — see HealthCitations: the app
+        // does not state a number it cannot attribute to a source.
         if isSingleDay {
             return SignalNoiseVerdict(
                 metric: metric,

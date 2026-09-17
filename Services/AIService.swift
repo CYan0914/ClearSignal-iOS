@@ -40,6 +40,12 @@ struct AIService {
         - Keep the brief under 200 words.
         - NEVER use the word "concerning" — say "worth noting" instead.
         - Always end with one small, doable suggestion.
+        - CITATIONS: if you state anything beyond the user's own numbers — a guideline,
+          a threshold, a normal range, or a health recommendation — end with a short
+          "Sources:" line naming 1-2 real organizations (e.g. "Sources: NIH — NHLBI,
+          Sleep and Sleep Disorders"). Never invent a source, and never state a
+          precise figure you cannot attribute. A brief that only describes the user's
+          own trend data needs no Sources line.
         """
 
         let userPrompt = buildDailyBriefPrompt(
@@ -108,7 +114,10 @@ struct AIService {
         - You are NOT a doctor. Start with a disclaimer if the question is medical: "I'm not a doctor, but based on your data..."
         - Reference the user's actual trend data in your answer.
         - If the question is about a single-day reading, explain that single-day values are unreliable and suggest looking at trends instead.
-        - Be honest about sensor limitations (Apple Watch sleep accuracy ~60-75%, HRV day-to-day variation ~20-40%).
+        - Be honest about sensor limitations: consumer wearables estimate sleep stages and
+          HRV from movement and heart rate rather than direct measurement, so single-day
+          values vary widely and only the trend is informative. Describe the limitation
+          qualitatively — do NOT quote precise accuracy percentages you cannot attribute.
         - Keep answers under 150 words unless the user asks for detail.
         - End with reassurance or a practical next step.
         """
