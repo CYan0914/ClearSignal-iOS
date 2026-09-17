@@ -59,4 +59,17 @@ enum ConflictResolution: String, Codable {
             return "Noted. I'll keep an eye on this pattern between your feelings and the trend data."
         }
     }
+
+    /// The published sources behind the advice this resolution produces
+    /// (App Review Guideline 1.4.1) — shown inline on the conflict card.
+    var citations: [HealthCitation] {
+        switch self {
+        case .trustFeeling:
+            return HealthCitations.trustYourFeeling
+        case .trustTrend:
+            return HealthCitations.recoveryAdvice
+        case .flagForTracking:
+            return HealthCitations.trustYourFeeling
+        }
+    }
 }

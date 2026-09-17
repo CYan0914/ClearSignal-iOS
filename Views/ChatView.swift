@@ -19,46 +19,53 @@ struct ChatView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Chat messages
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            // Welcome message
-                            welcomeCard
+            // Chat messages
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        // Welcome message
+                        welcomeCard
 
-                            ForEach(messages) { msg in
-                                MessageBubble(message: msg)
-                            }
-
-                            if isLoading {
-                                HStack {
-                                    ProgressView()
-                                        .padding(.horizontal)
-                                    Text("Thinking...")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Spacer()
-                                }
-                                .padding(.horizontal)
-                            }
+                        ForEach(messages) { msg in
+                            MessageBubble(message: msg)
                         }
-                        .padding()
-                    }
-                    .onChange(of: messages.count) { _ in
-                        if let last = messages.last {
-                            withAnimation {
-                                proxy.scrollTo(last.id, anchor: .bottom)
+
+                        if isLoading {
+                            HStack {
+                                ProgressView()
+                                    .padding(.horizontal)
+                                Text("Thinking...")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
                             }
+                            .padding(.horizontal)
+                        }
+                    }
+                    .padding()
+                    // Bubbles used to stretch the full width of an iPad window.
+                    .frame(maxWidth: 680)
+                    .frame(maxWidth: .infinity)
+                }
+                .onChange(of: messages.count) { _ in
+                    if let last = messages.last {
+                        withAnimation {
+                            proxy.scrollTo(last.id, anchor: .bottom)
                         }
                     }
                 }
+            }
+            // Pinned below the scroll view as a safe-area inset, so the newest
+            // message is never hidden behind the input bar or the keyboard
+            // (App Review Guideline 4).
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VStack(spacing: 0) {
+                    // Free-trial / upgrade banner
+                    trialBanner
 
-                // Free-trial / upgrade banner
-                trialBanner
-
-                // Input bar
-                inputBar
+                    // Input bar
+                    inputBar
+                }
             }
             .navigationTitle("Ask SignalVeil")
             .navigationBarTitleDisplayMode(.inline)

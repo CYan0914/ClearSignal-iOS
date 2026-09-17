@@ -84,23 +84,28 @@ struct TrendDetailView: View {
                 let recent = Array(values.sorted(by: { $0.date < $1.date }).suffix(14))
                 let maxVal = recent.map(\.value).max() ?? 1
 
-                HStack(alignment: .bottom, spacing: 4) {
-                    ForEach(recent) { v in
-                        VStack(spacing: 2) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(v.value / maxVal > 0.9 ? Color.orange : Color.blue.opacity(0.6))
-                                .frame(width: 16, height: max(4, CGFloat(v.value / maxVal) * 80))
+                // 14 fixed-width bars overflow a narrow window (iPadOS 26 lets the
+                // app be resized freely), which clipped the whole card — scroll
+                // horizontally instead of pushing the layout wide.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .bottom, spacing: 4) {
+                        ForEach(recent) { v in
+                            VStack(spacing: 2) {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(v.value / maxVal > 0.9 ? Color.orange : Color.blue.opacity(0.6))
+                                    .frame(width: 16, height: max(4, CGFloat(v.value / maxVal) * 80))
 
-                            Text(v.date.formatted(date: .numeric, time: .omitted))
-                                .font(.system(size: 8))
-                                .foregroundColor(.secondary)
-                                .rotationEffect(.degrees(-45))
-                                .frame(width: 20)
+                                Text(v.date.formatted(date: .numeric, time: .omitted))
+                                    .font(.system(size: 8))
+                                    .foregroundColor(.secondary)
+                                    .rotationEffect(.degrees(-45))
+                                    .frame(width: 20)
+                            }
                         }
                     }
+                    .frame(height: 120)
+                    .padding(.vertical, 8)
                 }
-                .frame(height: 120)
-                .padding(.vertical, 8)
             } else {
                 ProgressView()
                     .frame(height: 100)
@@ -136,9 +141,13 @@ struct TrendDetailView: View {
                     }
                 }
 
-                Text("Remember: \(metric.displayName) single-day readings can vary by \(metric.singleDayUnreliable ? "20-40%" : "10-15%") just from sensor noise. Trends are what count.")
+                Text("Remember: a single \(metric.displayName) reading is affected by measurement timing, body position and sensor contact. Trends are what count.")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Guideline 1.4.1 — cite the sources behind the claim above.
+                CitationFootnote(citations: HealthCitations.trendOverSingleDay)
             }
         }
         .padding()
@@ -200,10 +209,15 @@ struct TrendDetailView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
 
-            Text("Source: wearable sensors (Apple Watch / Oura / Fitbit). Accuracy varies by device and measurement conditions.")
+            // Guideline 1.4.1 — every health topic explained here is cited.
+            CitationFootnote(citations: HealthCitations.forMetric(metric))
+
+            Text("Readings come from the sensors in your own device. Accuracy varies by device and measurement conditions.")
                 .font(.caption2)
                 .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding()
         .background(Color(.systemBackground))
@@ -252,26 +266,28 @@ struct TrendDetailView: View {
 
     // MARK: - Education content
 
+    /// Explanations are deliberately limited to what the cited sources state.
+    /// (Guideline 1.4.1 — no uncited precision.)
     private var educationText: String {
         switch metric {
         case .sleepDuration:
-            return "Sleep duration is your total time asleep per night. The CDC recommends 7+ hours for adults. Sleep stage accuracy from wearables is only ~60-75% compared to lab PSG, so focus on total duration and consistency rather than deep/REM breakdowns."
+            return "Sleep duration is your total time asleep per night. The CDC recommends 7 or more hours for adults. Wearables estimate sleep stages from movement and heart rate rather than brain activity, so total duration and night-to-night consistency are more dependable than stage breakdowns."
         case .restingHeartRate:
-            return "RHR is your heart rate at complete rest. A lower RHR generally indicates better cardiovascular fitness. A sustained increase of 5+ bpm can signal fatigue, illness, or overtraining — that's why we track the trend, not single-day readings."
+            return "RHR is your heart rate at complete rest. A lower resting rate generally reflects better cardiovascular fitness. A sustained rise can accompany fatigue, illness or overtraining — which is why the trend matters and a single reading does not."
         case .heartRateVariability:
-            return "HRV measures the variation between heartbeats. Higher is generally better — it indicates your body is adaptable and recovered. But single-day HRV can vary 20-40% just from measurement timing, sleep position, or alcohol. ONLY the weekly trend is meaningful."
+            return "HRV measures the variation between successive heartbeats. Higher generally indicates a body that is recovering and adaptable. It is sensitive to measurement timing, sleep position, alcohol and stress, so single-day values swing widely and only the multi-day trend is informative."
         case .respiratoryRate:
-            return "Your breathing rate at rest. Sudden sustained increases can signal stress, illness, or poor recovery. Normal adult range: 12-20 breaths/min."
+            return "Your breathing rate at rest. It is a stable vital sign, so a sustained change carries more information than any single night's reading."
         case .activeEnergy:
-            return "Calories burned through activity. Useful as a trend metric for weight management, but wearable calorie estimates can be off by 20-30%. Don't obsess over the exact number."
+            return "Calories burned through activity, estimated from heart rate and movement. Estimates vary between devices and activity types, so treat this as a directional trend rather than a precise count."
         case .stepCount:
-            return "Daily steps — the simplest activity metric. 7,000-10,000 steps/day is associated with lower all-cause mortality. Trend matters more than any single day's count."
+            return "Daily steps — the simplest activity measure. Regular physical activity is associated with lower risk of chronic disease. The trend over weeks matters more than any single day's count."
         case .sleepConsistency:
-            return "How consistent your bedtime is (standard deviation in minutes). Research shows sleep consistency may matter MORE than total sleep duration for cognitive performance and mood."
+            return "How regular your bedtime is, expressed as the standard deviation of your bedtimes in minutes. Keeping a consistent sleep and wake schedule supports sleep quality independently of total sleep duration."
         case .bodyWeight:
-            return "Your weight trend from smart scale data. Single-day weight can fluctuate 1-2 kg from water, salt, and food intake. Only the 7-day rolling average is meaningful."
+            return "Your weight trend from smart scale data. Day-to-day weight shifts with water, salt and food intake, so only the rolling multi-day average is meaningful."
         case .bloodOxygen:
-            return "Blood oxygen saturation (SpO2). Normal is 95-100%. Consistently low readings (below 92%) during sleep may indicate sleep apnea — worth discussing with a doctor. Single-day dips are usually measurement errors (watch too loose, sleeping position)."
+            return "Blood oxygen saturation (SpO2). Wearable readings are estimates and are easily disturbed by a loose watch or sleeping position. Repeatedly low readings during sleep are worth raising with a clinician."
         }
     }
 }

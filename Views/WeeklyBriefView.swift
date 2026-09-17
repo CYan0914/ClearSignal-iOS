@@ -125,12 +125,21 @@ struct WeeklyBriefView: View {
 
             Divider()
 
-            HStack {
+            HStack(alignment: .top) {
                 Text("💡")
                 Text(brief.weeklySuggestion)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .italic()
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            // Guideline 1.4.1 — the weekly suggestion is health guidance, so its
+            // sources are reachable directly from the card.
+            NavigationLink(destination: HealthInfoSourcesView()) {
+                Label("Health information sources", systemImage: "book.closed")
+                    .font(.caption2)
+                    .foregroundColor(.blue)
             }
         }
         .padding()

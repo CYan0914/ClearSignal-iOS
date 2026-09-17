@@ -6,6 +6,7 @@ struct OnboardingView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var currentStep: Step = .welcome
     @State private var selectedGoal: UserGoal = .generalHealth
+    @State private var showSources = false
     @StateObject private var healthKit = HealthKitService()
 
     private let store = LocalDataStore.shared
@@ -19,36 +20,48 @@ struct OnboardingView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Progress dots (5 steps total)
-            HStack(spacing: 8) {
-                ForEach(0..<5) { i in
-                    Circle()
-                        .fill(i <= stepIndex ? Color.blue : Color(.systemGray4))
-                        .frame(width: 8, height: 8)
+        // Content is scrollable and the CTA is pinned to the safe area: this is
+        // the first screen a reviewer sees, and a bare VStack clipped its bottom
+        // rows on iPad (App Review Guideline 4). iPadOS 26 lets the window be
+        // resized to any height, so nothing here may rely on fixed height.
+        ScrollView {
+            VStack(spacing: 0) {
+                // Progress dots (5 steps total)
+                HStack(spacing: 8) {
+                    ForEach(0..<5) { i in
+                        Circle()
+                            .fill(i <= stepIndex ? Color.blue : Color(.systemGray4))
+                            .frame(width: 8, height: 8)
+                    }
                 }
-            }
-            .padding(.top, 40)
+                .padding(.top, 24)
 
-            // Content
-            Group {
-                switch currentStep {
-                case .welcome:
-                    welcomeStep
-                case .goalSelection:
-                    goalStep
-                case .healthKit:
-                    healthKitStep
-                case .howItWorks:
-                    howItWorksStep
-                case .done:
-                    doneStep
+                // Content
+                Group {
+                    switch currentStep {
+                    case .welcome:
+                        welcomeStep
+                    case .goalSelection:
+                        goalStep
+                    case .healthKit:
+                        healthKitStep
+                    case .howItWorks:
+                        howItWorksStep
+                    case .done:
+                        doneStep
+                    }
                 }
+                .transition(.opacity)
+                .animation(.easeInOut, value: currentStep)
+                .padding(.bottom, 24)
             }
-            .transition(.opacity)
-            .animation(.easeInOut, value: currentStep)
-
-            // Bottom button
+            // Keeps lines readable on a wide iPad window instead of stretching
+            // text edge to edge.
+            .frame(maxWidth: 560)
+            .frame(maxWidth: .infinity)
+        }
+        .background(Color(.systemGroupedBackground))
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 12) {
                 Button(action: nextStep) {
                     Text(buttonLabel)
@@ -72,9 +85,24 @@ struct OnboardingView: View {
                     .foregroundColor(.secondary)
                 }
             }
-            .padding(.bottom, 40)
+            .frame(maxWidth: 560)
+            .frame(maxWidth: .infinity)
+            .padding(.top, 12)
+            .padding(.bottom, 16)
+            .background(.bar)
         }
-        .background(Color(.systemGroupedBackground))
+        // Onboarding is presented as a sheet with no NavigationStack, so the
+        // citation list gets its own sheet rather than a push.
+        .sheet(isPresented: $showSources) {
+            NavigationStack {
+                HealthInfoSourcesView()
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { showSources = false }
+                        }
+                    }
+            }
+        }
     }
 
     private var stepIndex: Int {
@@ -311,6 +339,18 @@ struct OnboardingView: View {
                     body: "If your watch says one thing and you feel another, we trust you (unless 3+ day trend anomaly)."
                 )
             }
+            .padding(.horizontal, 24)
+
+            // Guideline 1.4.1 — the rules above are health claims; the sources
+            // behind them are reachable from this very screen.
+            Button {
+                showSources = true
+            } label: {
+                Label("Where this guidance comes from", systemImage: "book.closed")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+            }
+            .buttonStyle(.plain)
             .padding(.horizontal, 24)
 
             Spacer()

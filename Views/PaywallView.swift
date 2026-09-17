@@ -11,79 +11,85 @@ struct PaywallView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                Spacer()
+            // Scrollable: on iPad the paywall is a sheet, so its height is a
+            // fraction of the screen. As a bare VStack the package list and the
+            // Restore button were pushed off the bottom and clipped
+            // (App Review Guideline 4).
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header
+                    VStack(spacing: 8) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 48))
+                            .foregroundColor(.orange)
 
-                // Header
-                VStack(spacing: 8) {
-                    Image(systemName: "crown.fill")
-                        .font(.system(size: 48))
-                        .foregroundColor(.orange)
+                        Text("SignalVeil Premium")
+                            .font(.title2)
+                            .fontWeight(.bold)
 
-                    Text("SignalVeil Premium")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                        Text("Unlock the full experience")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
 
-                    Text("Unlock the full experience")
-                        .font(.subheadline)
+                    // Features
+                    VStack(alignment: .leading, spacing: 16) {
+                        premiumFeature(icon: "sun.max.fill", title: "Daily AI Morning Brief", desc: "Natural-language summary of your health trends — not a dashboard.")
+                        premiumFeature(icon: "bubble.left.and.bubble.right.fill", title: "Conversational Q&A", desc: "Ask anything about your data. \"Why is my HRV down?\" — get a real answer.")
+                        premiumFeature(icon: "bell.slash.fill", title: "Ignore Lists & Declutter", desc: "Tell us what to mute. We'll suggest what's noise.")
+                        premiumFeature(icon: "calendar.badge.clock", title: "Weekly AI Deep Report", desc: "A Sunday deep-dive on your week — trends, conflicts, and what to adjust.")
+                    }
+
+                    // Pricing
+                    if let offering = subscriptionManager.offerings?.current {
+                        VStack(spacing: 12) {
+                            ForEach(offering.availablePackages, id: \.identifier) { package in
+                                packageButton(package, monthlyPrice: offering.availablePackages.first { $0.packageType == .monthly }?.storeProduct.price)
+                            }
+                        }
+                    } else if subscriptionManager.isLoadingOfferings {
+                        ProgressView("Loading pricing...")
+                    } else {
+                        VStack(spacing: 10) {
+                            Text(subscriptionManager.offeringError ?? "Pricing is temporarily unavailable.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                            Button("Retry") { subscriptionManager.fetchOfferings() }
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.blue)
+                        }
+                    }
+
+                    // Error
+                    if let error = errorMessage {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+
+                    // Restore
+                    Button("Restore Purchases") {
+                        Task {
+                            try? await subscriptionManager.restorePurchases()
+                            if subscriptionManager.isPro {
+                                dismiss()
+                            }
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                    Text("Subscriptions renew automatically until cancelled. Manage or cancel in your App Store account settings.")
+                        .font(.caption2)
                         .foregroundColor(.secondary)
-                }
-
-                // Features
-                VStack(alignment: .leading, spacing: 16) {
-                    premiumFeature(icon: "sun.max.fill", title: "Daily AI Morning Brief", desc: "Natural-language summary of your health trends — not a dashboard.")
-                    premiumFeature(icon: "bubble.left.and.bubble.right.fill", title: "Conversational Q&A", desc: "Ask anything about your data. \"Why is my HRV down?\" — get a real answer.")
-                    premiumFeature(icon: "bell.slash.fill", title: "Ignore Lists & Declutter", desc: "Tell us what to mute. We'll suggest what's noise.")
-                    premiumFeature(icon: "calendar.badge.clock", title: "Weekly AI Deep Report", desc: "A Sunday deep-dive on your week — trends, conflicts, and what to adjust.")
+                        .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 30)
-
-                Spacer()
-
-                // Pricing
-                if let offering = subscriptionManager.offerings?.current {
-                    VStack(spacing: 12) {
-                        ForEach(offering.availablePackages, id: \.identifier) { package in
-                            packageButton(package, monthlyPrice: offering.availablePackages.first { $0.packageType == .monthly }?.storeProduct.price)
-                        }
-                    }
-                    .padding(.horizontal, 30)
-                } else if subscriptionManager.isLoadingOfferings {
-                    ProgressView("Loading pricing...")
-                } else {
-                    VStack(spacing: 10) {
-                        Text(subscriptionManager.offeringError ?? "Pricing is temporarily unavailable.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                        Button("Retry") { subscriptionManager.fetchOfferings() }
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.blue)
-                    }
-                    .padding(.horizontal, 30)
-                }
-
-                // Error
-                if let error = errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.horizontal)
-                }
-
-                // Restore
-                Button("Restore Purchases") {
-                    Task {
-                        try? await subscriptionManager.restorePurchases()
-                        if subscriptionManager.isPro {
-                            dismiss()
-                        }
-                    }
-                }
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .padding(.bottom, 20)
+                .frame(maxWidth: 560)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
             }
             .navigationTitle("Premium")
             .navigationBarTitleDisplayMode(.inline)

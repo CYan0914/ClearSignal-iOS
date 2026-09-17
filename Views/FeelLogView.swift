@@ -11,42 +11,47 @@ struct FeelLogView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                Spacer()
+            // Scrollable, with the save button pinned to the safe area: as a bare
+            // VStack the button was pushed under the keyboard / clipped on iPad
+            // (App Review Guideline 4).
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Question
+                    Text("How are you feeling today?")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .multilineTextAlignment(.center)
 
-                // Question
-                Text("How are you feeling today?")
-                    .font(.title3)
-                    .fontWeight(.medium)
-
-                Text("This helps us compare how you feel vs what your device scores say.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-
-                // Three-choice feeling selector
-                HStack(spacing: 20) {
-                    ForEach(Feeling.allCases, id: \.self) { feeling in
-                        feelingButton(feeling)
-                    }
-                }
-                .padding(.horizontal)
-
-                // Optional note
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Anything to note? (optional)")
+                    Text("This helps us compare how you feel vs what your device scores say.")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    TextField("e.g., Slept poorly, stressed at work...", text: $note, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .lineLimit(3)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+
+                    // Three-choice feeling selector
+                    HStack(spacing: 20) {
+                        ForEach(Feeling.allCases, id: \.self) { feeling in
+                            feelingButton(feeling)
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    // Optional note
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Anything to note? (optional)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        TextField("e.g., Slept poorly, stressed at work...", text: $note, axis: .vertical)
+                            .textFieldStyle(.roundedBorder)
+                            .lineLimit(3)
+                    }
+                    .padding(.horizontal, 40)
                 }
-                .padding(.horizontal, 40)
-
-                Spacer()
-
-                // Save button
+                .frame(maxWidth: 560)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
                 Button(action: saveAndDismiss) {
                     Text("Save Check-in")
                         .fontWeight(.semibold)
@@ -57,8 +62,12 @@ struct FeelLogView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(selectedFeeling == nil)
+                .frame(maxWidth: 560)
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 40)
-                .padding(.bottom, 40)
+                .padding(.top, 12)
+                .padding(.bottom, 16)
+                .background(.bar)
             }
             .navigationTitle("Daily Check-in")
             .navigationBarTitleDisplayMode(.inline)

@@ -42,13 +42,15 @@ struct TodayView: View {
 
                     // --- Weekly Preview ---
                     weeklyPreviewCard
+
+                    // --- Citations (Guideline 1.4.1) ---
+                    sourcesFooter
                 }
                 .padding()
-                // Keep cards readable on iPad (avoid stretched full-width rows).
+                // Keep cards readable at any window size — iPhone, iPad full
+                // screen, and iPadOS 26 resizable windows / Split View.
                 .frame(maxWidth: 680)
                 .frame(maxWidth: .infinity)
-                // iPad 11"+ landscape: show the trend grid in two columns.
-                .modifier(AdaptiveMetricGrid())
             }
             .navigationTitle("SignalVeil")
             .toolbar {
@@ -196,11 +198,16 @@ struct TodayView: View {
             Text("Today's Metrics")
                 .font(.headline)
 
-            ForEach(brief.metricTrends) { trend in
-                NavigationLink(destination: TrendDetailView(metric: trend.metric)) {
-                    metricRow(trend: trend, brief: brief)
+            // Only the metric rows go into a grid on wide windows. Wrapping the
+            // whole page in a LazyVGrid instead made every card half-width and
+            // unevenly sized on iPad — the "crowded / cut off" App Review finding.
+            AdaptiveMetricColumns {
+                ForEach(brief.metricTrends) { trend in
+                    NavigationLink(destination: TrendDetailView(metric: trend.metric)) {
+                        metricRow(trend: trend, brief: brief)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
     }
@@ -347,6 +354,10 @@ struct TodayView: View {
                 .fontWeight(.medium)
                 .foregroundColor(Color(red: 0.30, green: 0.22, blue: 0.45))
                 .padding(.top, 2)
+
+            // Guideline 1.4.1 — the advice above is a health recommendation, so
+            // its published sources sit on the card itself, not only in Settings.
+            CompactCitationLink(citations: conflict.resolution.citations)
         }
         .padding(14)
         .background(Color(red: 0.94, green: 0.91, blue: 0.97))
@@ -417,6 +428,41 @@ struct TodayView: View {
                         .foregroundColor(.secondary)
                 }
                 Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Persistent, top-level route to the full citation list. Lives on the app's
+    /// home screen so a reviewer never has to hunt in Settings (Guideline 1.4.1).
+    private var sourcesFooter: some View {
+        NavigationLink(destination: HealthInfoSourcesView()) {
+            HStack(spacing: 10) {
+                Image(systemName: "book.closed")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Health Information Sources")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                    Text("Where every rule, number and recommendation in this app comes from. Not medical advice.")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 4)
+
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -500,21 +546,29 @@ struct TodayView: View {
     }
 }
 
-/// On iPad (wide layouts) lay the metric rows out in a 2-column grid so each
-/// row is narrower and doesn't stretch full-width — fixes "crowded, hard to
-/// read" App Review feedback on iPad Air 11" (Guideline 4).
-private struct AdaptiveMetricGrid: ViewModifier {
+/// Lays its children out in two columns when the window is wide enough (iPad
+/// full screen, iPadOS 26 resizable windows in landscape); one column otherwise.
+/// Single-column metrics stretch to the full 680pt cap and read poorly, hence
+/// the grid — but it must wrap ONLY the metric rows, never the surrounding cards.
+private struct AdaptiveMetricColumns<Content: View>: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
+    private let content: () -> Content
 
-    func body(content: Content) -> some View {
-        // Only wide screens (iPad) get the grid; iPhone stays a single column.
-        Group {
-            if sizeClass == .regular {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                    content
-                }
-            } else {
-                content
+    init(@ViewBuilder content: @escaping () -> Content) {
+        self.content = content
+    }
+
+    var body: some View {
+        if sizeClass == .regular {
+            LazyVGrid(
+                columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
+                spacing: 12
+            ) {
+                content()
+            }
+        } else {
+            VStack(spacing: 12) {
+                content()
             }
         }
     }
