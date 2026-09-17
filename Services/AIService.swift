@@ -17,6 +17,19 @@ struct AIService {
         (Bundle.main.object(forInfoDictionaryKey: "APP_SECRET") as? String) ?? ""
     private static let model = "qwen-plus" // ignored server-side; model is pinned in the proxy
 
+    /// The app's curated source list, formatted for the prompt.
+    ///
+    /// The model is only allowed to cite from here. A language model asked to
+    /// "name a real organization" will sometimes produce a plausible-sounding
+    /// source that does not exist, and a fabricated citation is worse than no
+    /// citation at all — it is precisely the accuracy problem Guideline 1.4.1
+    /// exists to prevent. Restricting the model to the same list the user can
+    /// open in "Health Sources" also keeps that screen's claim to be the
+    /// complete basis for the app's health information literally true.
+    private static var citationMenu: String {
+        HealthCitations.all.map(\.label).joined(separator: "; ")
+    }
+
     // MARK: - Translate Rule Engine Output → Natural Language Brief
 
     /// Generate the daily brief text from rule engine output.
@@ -42,10 +55,11 @@ struct AIService {
         - Always end with one small, doable suggestion.
         - CITATIONS: if you state anything beyond the user's own numbers — a guideline,
           a threshold, a normal range, or a health recommendation — end with a short
-          "Sources:" line naming 1-2 real organizations (e.g. "Sources: NIH — NHLBI,
-          Sleep and Sleep Disorders"). Never invent a source, and never state a
-          precise figure you cannot attribute. A brief that only describes the user's
-          own trend data needs no Sources line.
+          "Sources:" line naming 1-2 entries copied exactly from this list:
+          \(citationMenu)
+          Never name a source that is not on that list, never invent one, and never
+          state a precise figure you cannot attribute. A brief that only describes the
+          user's own trend data needs no Sources line.
         """
 
         let userPrompt = buildDailyBriefPrompt(
@@ -76,7 +90,11 @@ struct AIService {
         - Include the conflict stats naturally.
         - End with ONE actionable, small suggestion for next week.
         - Keep under 300 words. Friendly, calm tone.
-        - If you reference any health/medical guideline, end with a short 'Sources:' line naming 1-2 real organizations.
+        - CITATIONS: if you reference any health/medical guideline, threshold or
+          recommendation, end with a short "Sources:" line naming 1-2 entries copied
+          exactly from this list:
+          \(citationMenu)
+          Never name a source that is not on that list.
         """
 
         let userPrompt = buildWeeklyBriefPrompt(
@@ -138,8 +156,9 @@ struct AIService {
         Answer based on the data context above. If the data doesn't answer the question, be honest about the limitation.
 
         CITATIONS RULE (required): When you give any health/medical recommendation, explanation, or reference,
-        add a short "Sources:" line at the end of your answer with 1-3 real, well-known source names for the
-        relevant topic (e.g. "Sources: CDC — Sleep and Heart Health, American Heart Association — Resting Heart Rate").
+        add a short "Sources:" line at the end of your answer with 1-3 entries copied exactly from this list:
+        \(citationMenu)
+        Never name a source that is not on that list, and never invent one.
         If your answer is purely about the user's trend data (their own numbers), a citation is not required.
         """
 
@@ -208,7 +227,7 @@ struct AIService {
         parts.append("")
         parts.append("Items ignored by user: \(ignoreCount)")
         parts.append("")
-        parts.append("Write a calm, brief morning summary (~150 words). Include the conflict resolution if present. If you reference any health/medical guideline, end with a short 'Sources:' line naming 1-2 real organizations (e.g. CDC, American Heart Association).")
+        parts.append("Write a calm, brief morning summary (~150 words). Include the conflict resolution if present. Follow the CITATIONS rule in your system instructions for anything beyond the user's own numbers.")
 
         return parts.joined(separator: "\n")
     }
